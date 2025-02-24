@@ -197,7 +197,8 @@ const startlefigaroNews = async () => {
 };
 
 const getlefigaroArticles = () => {
-    return ARTICLES.map(article => ({
+    return ARTICLES.filter(article => article && article.title) // sadece 'title' özelliği olanları al
+    .map(article => ({
         baslik: article.title,
         aciklama: article.description,
         link: article.link,
@@ -206,5 +207,6 @@ const getlefigaroArticles = () => {
         source: "lefigaro.fr",
     }));
 };
+
 
 module.exports = { startlefigaroNews, getlefigaroArticles };

@@ -59,7 +59,7 @@ const getNews = async (url) => {
             } else if (moment(time, "YYYY-MM-DD HH:mm", true).isValid()) {
               timestamp = moment.tz(time, "YYYY-MM-DD HH:mm", TZ).format("YYYY-MM-DD HH:mm");
             } else {
-              console.error("nationalpost Bilinmeyen tarih formatı: " + time);
+              console.error("nationalpost Bilinmeyen tarih formatı: " + time +" : "+ link);
               timestamp = moment().format("YYYY-MM-DD HH:mm");
             }
           }
@@ -81,7 +81,6 @@ const getNews = async (url) => {
     newsItems = newsItems.filter(item => moment(item.timestamp, "YYYY-MM-DD HH:mm").isAfter(twelveHoursAgo));
     return newsItems;
   } catch (error) {
-    console.error("nationalpost Haber çekme hatası:");
     return [];
   }
 };

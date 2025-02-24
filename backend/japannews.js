@@ -3,6 +3,9 @@ const cheerio = require("cheerio");
 const moment = require("moment-timezone");
 
 let ARTICLES = [];
+const SCRAPE_INTERVAL = 2 * 60 * 1000; // 2 minutes
+const RETRY_INTERVAL = 30 * 60 * 1000; // 30 minutes
+
 const TZ_TURKEY = "Europe/Istanbul";
 const TZ_JAPAN = "Asia/Tokyo";
 
@@ -25,7 +28,7 @@ const getArticleTime = async (articleUrl) => {
     }
     return moment().tz(TZ_TURKEY).format("YYYY-MM-DD HH:mm");
   } catch (error) {
-    console.error("Haber zamanı çekme hatası:", error);
+    console.error("JapanNews Haber zamanı çekme hatası:");
     return moment().tz(TZ_TURKEY).format("YYYY-MM-DD HH:mm");
   }
 };
@@ -77,7 +80,6 @@ const getJapanNews = async () => {
       }
       page++;
     } catch (error) {
-      console.error("Japan News çekme hatası:", error);
       break;
     }
   }
@@ -102,18 +104,22 @@ const scrapeNews = async () => {
       ARTICLES = [...newArticlesToAdd, ...ARTICLES];
     }
   } catch (error) {
-    console.error("ScrapeNews hatası:", error);
+    console.error("JapanNews ScrapeNews hatası:", error.message);
+    setTimeout(scrapeNews, RETRY_INTERVAL);
   }
 };
 
 const startJapanNews = async () => {
   console.log("JapanNews İlk haber çekme işlemi başlatılıyor");
-  await scrapeNews();
-  
-  setInterval(async () => {
-    console.log("JapanNews haberleri güncelleniyor...");
+  try {
     await scrapeNews();
-  }, 60000);
+    setInterval(async () => {
+      console.log("JapanNews haberleri güncelleniyor...");
+      await scrapeNews();
+    }, SCRAPE_INTERVAL);
+  } catch (error) {
+    setTimeout(startJapanNews, RETRY_INTERVAL); 
+  }
 };
 
 const getJapanNewsArticles = () => {

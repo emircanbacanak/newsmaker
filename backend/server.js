@@ -14,6 +14,7 @@ const { startnews_com, getnews_comArticles } = require("./news_com")
 const { startNaverNews, getNaverArticles  } = require("./news_naver")
 const { startRepubblicaScraper, getRepubblicaArticles  } = require("./repubblica")
 const { startAnimalpoliticoScraper, getAnimalpoliticoArticles  } = require("./animalpolitico")
+const { startTelegraafScraper, getTelegraafArticles } = require("./telegraaf")
 //const { startstandard, getStandardArticles  } = require("./standard")
 const app = express();
 const port = process.env.PORT || 3000;
@@ -43,6 +44,7 @@ app.get("/stream", (req, res) => {
             ...getNaverArticles(),
             ...getRepubblicaArticles(),
             ...getAnimalpoliticoArticles(),
+            ...getTelegraafArticles(),
             //...getStandardArticles(),
         ];
 
@@ -80,5 +82,6 @@ app.listen(port, () => {
     startNaverNews();
     startRepubblicaScraper();
     startAnimalpoliticoScraper();
+    startTelegraafScraper();
     //startstandard()
 });

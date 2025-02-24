@@ -1,12 +1,12 @@
-const express = require('express');
 const axios = require('axios');
 const cheerio = require('cheerio');
-const path = require('path');
 const moment = require('moment-timezone');
 
-const app = express();
-const PORT = 3000;
+const SCRAPE_INTERVAL = 5 * 60 * 1000; // 5 dakika
+const RETRY_INTERVAL = 30 * 60 * 1000; // 30 dakika
+
 let ARTICLES = [];
+let isFirstRun = true;
 
 const getHighestResolutionImage = (imgElem) => {
   const srcset = imgElem.attr('srcset') || '';
@@ -35,8 +35,8 @@ const getArticleTimestamp = async (link) => {
     const timeElement = $('time[datetime]').first();
     return timeElement.attr('datetime') || '';
   } catch (error) {
-    console.error(`Timestamp alınamadı (${link}):`, error);
-    return '';
+    console.error(`telegraaf Timestamp alınamadı (${link}): Haber listeden çıkarılıyor.`);
+    return null;
   }
 };
 
@@ -54,22 +54,27 @@ const getNews = async () => {
       const imageTag = articleElem.find('img').first();
       let image = imageTag.length ? "https://www.telegraaf.nl" + getHighestResolutionImage(imageTag) : '';
       let publication_time = await getArticleTimestamp(link);
+
+      if (!publication_time) return null; // Hata alındıysa bu haberi eklemiyoruz.
       return { title, link, img: image, timestamp: publication_time, publish_time: publication_time, source: 'telegraaf.nl' };
     };
 
     const topTeaser = $('article.TopTeaser').first();
     if (topTeaser.length) {
-      newsItems.push(await processArticle(topTeaser));
+      const topNews = await processArticle(topTeaser);
+      if (topNews) newsItems.push(topNews);
     }
 
     const basicTeasers = $('article.BasicTeaser').toArray();
     for (let teaser of basicTeasers) {
-      newsItems.push(await processArticle($(teaser)));
+      const news = await processArticle($(teaser));
+      if (news) newsItems.push(news);
     }
 
     return newsItems;
   } catch (error) {
-    console.error("Haber çekme hatası:", error);
+    console.error("telegraaf Sayfaya erişme hatası: 30 dakika sonra tekrar denenecek...");
+    await new Promise(resolve => setTimeout(resolve, RETRY_INTERVAL));
     return [];
   }
 };
@@ -78,7 +83,6 @@ const scrapeNews = async () => {
   try {
     const newArticles = await getNews();
     let updatedArticles = [];
-    
     newArticles.forEach(article => {
       const existingIndex = ARTICLES.findIndex(existing => existing.link === article.link);
       if (existingIndex !== -1) {
@@ -87,55 +91,40 @@ const scrapeNews = async () => {
         updatedArticles.push(article);
       }
     });
-    
+
     ARTICLES = [...updatedArticles, ...ARTICLES];
-    
     const twelveHoursAgo = moment().subtract(12, 'hours');
     ARTICLES = ARTICLES.filter(article => moment(article.timestamp).isAfter(twelveHoursAgo));
-    
     ARTICLES.sort((a, b) => moment(b.timestamp).diff(moment(a.timestamp)));
+    if (isFirstRun) {
+      console.log("telegraaf İlk haber çekme işlemi başlatılıyor...");
+      isFirstRun = false;
+    } else {
+      console.log("telegraaf Haberler güncelleniyor...");
+    }
+
   } catch (error) {
-    console.error("ScrapeNews hatası:", error);
+    console.error("telegraaf İnternet hatası: 30 dakika sonra tekrar denenecek...");
+    await new Promise(resolve => setTimeout(resolve, RETRY_INTERVAL));
   }
-  setTimeout(scrapeNews, 120000);
-  console.log("Tekrar haberler çekiliyor...")
+
+  setTimeout(scrapeNews, SCRAPE_INTERVAL);
 };
 
-app.use(express.static(path.join(__dirname, '../frontend')));
-app.get("/", (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
-});
-
-app.get("/stream", (req, res) => {
-  res.setHeader("Content-Type", "text/event-stream");
-  res.setHeader("Cache-Control", "no-cache");
-  res.setHeader("Connection", "keep-alive");
-  res.flushHeaders();
-
-  let lastData = JSON.stringify([]);
-  const sendData = () => {
-    const data = JSON.stringify(
-      ARTICLES.map(art => ({
-        baslik: art.title,
-        aciklama: art.description,
-        link: art.link,
-        resim: art.img,
-        timestamp: art.timestamp,
-        publish_time: art.publish_time,
-        source: art.source
-      }))
-    );
-    if (data !== lastData) {
-      res.write(`data: ${data}\n\n`);
-      lastData = data;
-    }
-  };
-
-  const interval = setInterval(sendData, 1000);
-  req.on("close", () => clearInterval(interval));
-});
-
-app.listen(PORT, () => {
-  console.log(`Server ${PORT} portunda çalışıyor...`);
+function startTelegraafScraper() {
   scrapeNews();
-});
+}
+
+function getTelegraafArticles() {
+  return ARTICLES.map(art => ({
+    baslik: art.title,
+    aciklama: art.description || '',
+    link: art.link,
+    resim: art.img,
+    timestamp: art.timestamp,
+    publish_time: art.publish_time,
+    source: 'telegraaf.nl'
+  }));
+}
+
+module.exports = { startTelegraafScraper, getTelegraafArticles };

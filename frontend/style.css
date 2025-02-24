@@ -1,0 +1,112 @@
+/* Temel renk değişkenleri */
+:root {
+    --bg-color: #f4f4f4;
+    --text-color: #333;
+    --header-bg: #333;
+    --header-text: #fff;
+    --card-bg: #fff;
+    --card-border: #ddd;
+    --link-color: #3498db;
+    --timestamp-color: #999;
+  }
+  
+  /* Light tema */
+  body.light-theme {
+    --bg-color: #f4f4f4;
+    --text-color: #333;
+    --header-bg: #333;
+    --header-text: #fff;
+    --card-bg: #fff;
+    --card-border: #ddd;
+    --link-color: #3498db;
+    --timestamp-color: #999;
+  }
+  
+  /* Dark tema */
+  body.dark-theme {
+    --bg-color: #121212;
+    --text-color: #e0e0e0;
+    --header-bg: #1f1f1f;
+    --header-text: #e0e0e0;
+    --card-bg: #1e1e1e;
+    --card-border: #444;
+    --link-color: #4ea1f3;
+    --timestamp-color: #bbb;
+  }
+  
+  body {
+    font-family: Arial, sans-serif;
+    background: var(--bg-color);
+    color: var(--text-color);
+    margin: 0;
+    padding: 0;
+    transition: background 0.3s, color 0.3s;
+  }
+  
+  header {
+    position: relative;
+    text-align: center;
+    background: var(--header-bg);
+    color: var(--header-text);
+    padding: 0.1rem 0;
+  }
+  
+  #theme-toggle {
+    position: absolute;
+    top: 50%;
+    right: 20px;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: var(--header-text);
+  }
+  
+  .haberler-container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin: 20px;
+  }
+  
+  .kart {
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 5px;
+    margin: 10px;
+    padding: 15px;
+    width: 300px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    transition: background 0.3s, border-color 0.3s;
+  }
+  
+  .kart h2 {
+    font-size: 1.2em;
+    margin: 0 0 10px 0;
+  }
+  
+  .kart p {
+    font-size: 0.9em;
+  }
+  
+  .kart a {
+    text-decoration: none;
+    color: var(--link-color);
+  }
+  
+  .timestamp {
+    font-size: 0.8em;
+    color: var(--timestamp-color);
+    margin-top: 10px;
+  }
+  
+  .kart img {
+    width: 300px;
+    height: 169px;
+    object-fit: cover; 
+    border-radius: 5px;
+    margin-bottom: 10px;
+  }
+  
+  

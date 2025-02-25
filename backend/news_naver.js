@@ -2,11 +2,11 @@ const puppeteer = require('puppeteer');
 const axios = require('axios'); 
 const moment = require('moment-timezone');
 
-let ARTICLES = [];
+let ARTICLES = new Set();
 const BASE_URL = "https://news.naver.com/";
 
-const SCRAPE_INTERVAL = 5 * 60 * 1000;
-const RETRY_INTERVAL = 30 * 60 * 1000;
+const SCRAPE_INTERVAL = 5 * 60 * 1000; // 5 dakika
+const RETRY_INTERVAL = 30 * 60 * 1000; // 30 dakika bekleme süresi
 let isFirstRun = true; 
 
 const getNews = async () => {
@@ -41,14 +41,16 @@ const getNews = async () => {
 
 const verifyArticles = async () => {
   const validArticles = [];
-  for (const article of ARTICLES) {
+  const articlePromises = [...ARTICLES].map(async (article) => {
     try {
       await axios.get(article.link, { timeout: 15000 });
       validArticles.push(article);
     } catch (err) {
+      console.log(`news.naver Geçersiz haber: ${article.link}`);
     }
-  }
-  ARTICLES = validArticles;
+  });
+  await Promise.all(articlePromises);
+  ARTICLES = new Set(validArticles); 
 };
 
 const startNaverNews = async () => {
@@ -57,6 +59,7 @@ const startNaverNews = async () => {
   } else {
     console.log("news.naver Haberler güncelleniyor...");
   }
+
   try {
     const newArticles = await getNews();
     const currentYear = moment().year();
@@ -70,29 +73,30 @@ const startNaverNews = async () => {
 
     let updatedArticles = [];
     newArticles.forEach(article => {
-      const existingIndex = ARTICLES.findIndex(existing => existing.link === article.link);
-      if (existingIndex !== -1) {
-        ARTICLES[existingIndex] = { ...ARTICLES[existingIndex], ...article };
+      const existingArticle = [...ARTICLES].find(existing => existing.link === article.link);
+      if (existingArticle) {
+        ARTICLES.delete(existingArticle);
+        ARTICLES.add({ ...existingArticle, ...article }); 
       } else {
         updatedArticles.push(article);
       }
     });
-    ARTICLES = [...updatedArticles, ...ARTICLES];
+    updatedArticles.forEach(article => ARTICLES.add(article));
     const twelveHoursAgo = moment().subtract(12, 'hours');
-    ARTICLES = ARTICLES.filter(article => moment(article.timestamp).isAfter(twelveHoursAgo));
-    ARTICLES.sort((a, b) => moment(b.timestamp).diff(moment(a.timestamp)));
-
+    ARTICLES = new Set([...ARTICLES].filter(article => moment(article.timestamp).isAfter(twelveHoursAgo)));
+    ARTICLES = new Set([...ARTICLES].sort((a, b) => moment(b.timestamp).diff(moment(a.timestamp))));
     await verifyArticles();
   } catch (error) {
-    console.log("Hata durumunda 30 dakika sonra tekrar denenecek...");
-    return setTimeout(startNaverNews, RETRY_INTERVAL);
+    console.log("news.naver Hata durumunda 30 dakika sonra tekrar denenecek...");
+    setTimeout(startNaverNews, RETRY_INTERVAL);
+    return;
   }
   isFirstRun = false;
   setTimeout(startNaverNews, SCRAPE_INTERVAL);
 };
 
 const getNaverArticles = () => {
-  return ARTICLES.map(art => ({
+  return [...ARTICLES].map(art => ({
     baslik: art.title,
     aciklama: art.description || '',
     link: art.link,

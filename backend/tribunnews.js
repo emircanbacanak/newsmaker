@@ -1,150 +1,155 @@
-const express = require("express");
 const axios = require("axios");
 const cheerio = require("cheerio");
-const moment = require("moment-timezone");
 const path = require("path");
+const fs = require("fs");
 
-const app = express();
-const PORT = 3000;
-let ARTICLES = [];
-const TZ = "Europe/Istanbul";
+const SCRAPE_INTERVAL = 5 * 60 * 1000; // 5 dakika
+const RETRY_INTERVAL = 30 * 60 * 1000; // 30 dakika
+const BLACKLIST_EXPIRATION = 7 * 24 * 60 * 60 * 1000; // 7 gün
+
+let ARTICLES = new Set();
+let blackList = [];
+let firstRun = true;
+const blackListFilePath = path.join(__dirname, "blackList.json");
+
+const loadBlackList = () => {
+  if (fs.existsSync(blackListFilePath)) {
+    try {
+      const data = fs.readFileSync(blackListFilePath, "utf8");
+      return JSON.parse(data);
+    } catch (err) {
+      console.error("standard Blacklist okuma hatası:", err.message);
+      return [];
+    }
+  }
+  return [];
+};
+
+const saveBlackList = () => {
+  try {
+    fs.writeFileSync(blackListFilePath, JSON.stringify(blackList, null, 2), "utf8");
+  } catch (err) {
+    console.error("standard Blacklist yazma hatası:", err.message);
+  }
+};
+
+const cleanOldBlackList = () => {
+  const now = Date.now();
+  let changed = false;
+  blackList = blackList.filter(item => {
+    const age = now - new Date(item.blacklistedAt).getTime();
+    if (age >= BLACKLIST_EXPIRATION) {
+      console.log(`Blacklist'ten silinen haber: ${item.link}`);
+      changed = true;
+      return false;
+    }
+    return true;
+  });
+  if (changed) saveBlackList();
+};
 
 const getNews = async () => {
-  const url = "https://www.tribunnews.com/";
+  const url = "https://www.standard.co.uk/news";
   try {
-    const response = await axios.get(url);
+    const response = await axios.get(url, {
+      headers: {
+        "User-Agent":
+          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.6943.60 Safari/537.36",
+        "Accept-Language": "en-US,en;q=0.9",
+      },
+    });
     const $ = cheerio.load(response.data);
-    let newsItems = [];
+    let newsItems = new Set();
 
-    $("li.p1520.art-list.pos_rel").each((index, element) => {
-      const newsElem = $(element);
-      const imgDiv = newsElem.find("div.fr.mt5.pos_rel");
-      if (!imgDiv.hasClass("ml15")) {
-        let newsData = {};
-        let titleTag = newsElem.find("h3 a[title]");
-        if (titleTag.length === 0) {
-          titleTag = newsElem.find("a[title]");
-        }
-        newsData.title = titleTag.attr("title")?.trim() || "No title";
-        let href = titleTag.attr("href") || "";
-        if (!href.startsWith("https://")) {
-          href = `https://www.tribunnews.com/${href}`;
-        }
-        newsData.link = href;
-        const imgTag = newsElem.find("img");
-        newsData.img = imgTag.attr("src") || "No image";
-
-        const descriptionTag = newsElem.find("div.grey2.pt5.f13.ln18.txt-oev-2");
-        newsData.description = descriptionTag.text().trim() || "No description";
-
-        const timeTag = newsElem.find("time.foot.timeago");
-        if (timeTag.attr("title")) {
-          let rawTime = timeTag.attr("title");
-          let timestamp = moment.tz(rawTime, TZ).subtract(4, "hours");
-          let currentTime = moment().tz(TZ);
-          let timeDiff = moment.duration(currentTime.diff(timestamp));
-
-          if (timeDiff.asHours() <= 12) {
-            newsData.timestamp = timestamp.format("YYYY-MM-DD HH:mm");
-            newsData.publish_time = timestamp.format("HH:mm");
-            newsData.source = "tribunnews.com";
-            newsItems.push(newsData);
-          }
-        }
+    $(".sc-heXsO").each((i, el) => {
+      const title = $(el).find("a.sc-ieQsNB").text().trim();
+      if (!title) return;
+      let link = $(el).find("a.sc-ieQsNB").attr("href");
+      if (link && !link.startsWith("https://")) {
+        link = "https://www.standard.co.uk" + link;
       }
+      if (blackList.some(item => item.link === link)) return;
+      const image = $(el).find("picture img").attr("src") || "";
+      const publishedAt = new Date().toISOString();
+      newsItems.add(JSON.stringify({
+        title,
+        link,
+        img: image,
+        timestamp: publishedAt,
+        source: "standard.co.uk",
+      }));
     });
 
-    // Sadece son 12 saat içinde olan haberleri filtrele
-    newsItems = newsItems.filter(item => {
-      let timestamp = moment(item.timestamp, "YYYY-MM-DD HH:mm");
-      return moment().diff(timestamp, 'hours') <= 12;
+    $(".sc-emIrwa").each((i, el) => {
+      const title = $(el).find("p.sc-kgOKUu").text().trim();
+      if (!title) return;
+      let link = $(el).find("a.sc-iHbSHJ").attr("href");
+      if (link && !link.startsWith("https://")) {
+        link = "https://www.standard.co.uk" + link;
+      }
+      if (blackList.some(item => item.link === link)) return;
+      const image = $(el).find("picture img").attr("src") || "";
+      const publishedAt = new Date().toISOString();
+      newsItems.add(JSON.stringify({
+        title,
+        link,
+        img: image,
+        timestamp: publishedAt,
+        source: "standard.co.uk",
+      }));
     });
 
-    // Haberleri daha yeni tarihler önce olacak şekilde sıralan
-    newsItems.sort((a, b) => {
-      return moment(b.timestamp).diff(moment(a.timestamp));
-    });
-
-    return newsItems;
+    return Array.from(newsItems).map(item => JSON.parse(item));
   } catch (error) {
-    console.error("Haber çekme hatası:", error);
+    console.error("Standard Sayfaya erişme hatası: 30 dakika sonra tekrar denenecek...", error.message);
+    await new Promise(resolve => setTimeout(resolve, RETRY_INTERVAL));
     return [];
   }
 };
 
-
 const scrapeNews = async () => {
   try {
+    blackList = loadBlackList();
+    cleanOldBlackList();
     const newArticles = await getNews();
-    let newArticlesToAdd = [];
-
+    let updated = false;
     newArticles.forEach(article => {
-      const existingIndex = ARTICLES.findIndex(existing => existing.link === article.link);
-      if (existingIndex === -1) {
-        newArticlesToAdd.push(article); 
-      } else {
-        ARTICLES[existingIndex] = article;
+      if (!blackList.some(item => item.link === article.link)) {
+        blackList.push({ link: article.link, blacklistedAt: new Date().toISOString() });
+        ARTICLES.add(JSON.stringify(article));
+        updated = true;
       }
     });
 
-    if (newArticlesToAdd.length > 0) {
-      ARTICLES = [...newArticlesToAdd, ...ARTICLES];
+    if (updated) saveBlackList();
+    if (firstRun) {
+      console.log("standard İlk haber çekme işlemi başlatılıyor...");
+      firstRun = false;
+    } else {
+      console.log("standard Haberler güncelleniyor...");
     }
   } catch (error) {
-    console.error("ScrapeNews hatası:", error);
+    console.error("standard İnternet hatası: 30 dakika sonra tekrar denenecek...", error.message);
+    await new Promise(resolve => setTimeout(resolve, RETRY_INTERVAL));
   }
-  setTimeout(scrapeNews, 60000);  // Haberleri her 1 dk bir güncelle
-  console.log("Haberler güncelleniyor...");
-  
+  setTimeout(scrapeNews, SCRAPE_INTERVAL);
 };
 
-const computeRelativeTime = (timestampStr) => {
-  if (!timestampStr) return "N/A";
-  let parsedTimestamp = moment.tz(timestampStr, "YYYY-MM-DD HH:mm", TZ);
-  let diff = moment().tz(TZ).diff(parsedTimestamp);
-  let duration = moment.duration(diff);
+function getStandardArticles() {
+  return Array.from(ARTICLES)
+    .map(item => JSON.parse(item))
+    .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
+    .map(art => ({
+      baslik: art.title,
+      link: art.link,
+      resim: art.img,
+      timestamp: art.timestamp,
+      source: art.source,
+    }));
+}
 
-  if (duration.asMinutes() < 1) return "az önce";
-  if (duration.asHours() < 1) return `${Math.floor(duration.asMinutes())} dakika önce`;
-  return `${Math.floor(duration.asHours())} saat ${Math.floor(duration.asMinutes() % 60)} dakika önce`;
-};
-
-app.use(express.static(path.join(__dirname, "../frontend")));
-app.get("/", (req, res) => {
-  res.sendFile(path.join(__dirname, "public", "index.html"));
-});
-
-app.get("/stream", (req, res) => {
-  res.setHeader("Content-Type", "text/event-stream");
-  res.setHeader("Cache-Control", "no-cache");
-  res.setHeader("Connection", "keep-alive");
-  res.flushHeaders();
-
-  let lastData = "";
-  const sendData = () => {
-    const data = JSON.stringify(
-      ARTICLES.map(art => ({
-        baslik: art.title,
-        aciklama: art.description,
-        link: art.link,
-        resim: art.img,
-        timestamp: art.timestamp,
-        relative_time: art.timestamp ? computeRelativeTime(art.timestamp) : "N/A",
-        publish_time: art.publish_time,
-        source: art.source
-      }))
-    );
-    if (data !== lastData) {
-      res.write(`data: ${data}\n\n`);
-      lastData = data;
-    }
-  };
-
-  const interval = setInterval(sendData, 5000);
-  req.on("close", () => clearInterval(interval));
-});
-
-app.listen(PORT, () => {
-  console.log(`Server ${PORT} portunda çalışıyor...`);
+function startStandardScraper() {
   scrapeNews();
-});
+}
+
+module.exports = { startStandardScraper, getStandardArticles };

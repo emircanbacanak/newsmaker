@@ -3,8 +3,9 @@ const cheerio = require("cheerio");
 const moment = require("moment-timezone");
 
 let ARTICLES = [];
-const SCRAPE_INTERVAL = 2 * 60 * 1000; // 2 minutes
-const RETRY_INTERVAL = 30 * 60 * 1000; // 30 minutes
+let seenLinks = new Set(); 
+const SCRAPE_INTERVAL = 5 * 60 * 1000;  // 5 dakika
+const RETRY_INTERVAL = 30 * 60 * 1000;  // 30 dakika
 
 const TZ_TURKEY = "Europe/Istanbul";
 const TZ_JAPAN = "Asia/Tokyo";
@@ -14,7 +15,6 @@ const getArticleTime = async (articleUrl) => {
     const response = await axios.get(articleUrl);
     const $ = cheerio.load(response.data);
     const dateTag = $("p.postdate").text().trim();
-
     if (dateTag) {
       const dateMatch = dateTag.match(/(\d{1,2}:\d{2}) JST,\s*([A-Za-z]+ \d{1,2}, \d{4})/);
       if (dateMatch) {
@@ -40,12 +40,10 @@ const getJapanNews = async () => {
 
   while (true) {
     const url = `https://japannews.yomiuri.co.jp/latestnews/page/${page}/`;
-
     try {
       const response = await axios.get(url);
       const $ = cheerio.load(response.data);
       let newsItems = [];
-
       $("li.clearfix").each((index, element) => {
         const newsElem = $(element);
         let newsData = {};
@@ -56,7 +54,6 @@ const getJapanNews = async () => {
         if (!newsData.link.startsWith("https://")) {
           newsData.link = `https://japannews.yomiuri.co.jp${newsData.link}`;
         }
-
         const imgTag = newsElem.find("figure img");
         newsData.img = imgTag.attr("src") || "";
         newsData.author = "No author";
@@ -70,7 +67,6 @@ const getJapanNews = async () => {
       newsItems.forEach((news, index) => {
         news.timestamp = timestamps[index];
       });
-
       for (let news of newsItems) {
         const articleTime = moment(news.timestamp, "YYYY-MM-DD HH:mm").tz(TZ_TURKEY);
         if (articleTime.isBefore(twelveHoursAgo)) {
@@ -80,6 +76,7 @@ const getJapanNews = async () => {
       }
       page++;
     } catch (error) {
+      console.error("JapanNews haberleri çekilirken hata:", error.message);
       break;
     }
   }
@@ -90,13 +87,10 @@ const scrapeNews = async () => {
   try {
     const newArticles = await getJapanNews();
     let newArticlesToAdd = [];
-
     newArticles.forEach((article) => {
-      const existingIndex = ARTICLES.findIndex((existing) => existing.link === article.link);
-      if (existingIndex !== -1) {
-        ARTICLES[existingIndex] = article; 
-      } else {
-        newArticlesToAdd.push(article); 
+      if (!seenLinks.has(article.link)) {
+        seenLinks.add(article.link);
+        newArticlesToAdd.push(article);
       }
     });
 
@@ -118,6 +112,7 @@ const startJapanNews = async () => {
       await scrapeNews();
     }, SCRAPE_INTERVAL);
   } catch (error) {
+    console.error("JapanNews Hata oluştu, tekrar denenecek...");
     setTimeout(startJapanNews, RETRY_INTERVAL); 
   }
 };
@@ -125,7 +120,7 @@ const startJapanNews = async () => {
 const getJapanNewsArticles = () => {
   return ARTICLES.map(article => ({
     baslik: article.title,
-    aciklama: article.description,
+    aciklama: article.description || "", 
     link: article.link,
     resim: article.img,
     timestamp: article.timestamp,

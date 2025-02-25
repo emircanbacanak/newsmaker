@@ -2,8 +2,8 @@ const axios = require("axios");
 const cheerio = require("cheerio");
 const moment = require("moment");
 
-let ARTICLES = [];
-const SCRAPE_INTERVAL = 5 * 60 * 1000;
+let ARTICLES = new Set(); // Set kullanarak benzersiz haberler
+const SCRAPE_INTERVAL = 5 * 60 * 1000; // 5 dakika
 const EXPIRATION = 12 * 60 * 60 * 1000; // 12 saat
 const RETRY_INTERVAL = 30 * 60 * 1000; // 30 dakika
 
@@ -187,44 +187,22 @@ async function scrapeNews() {
     ]);
 
     newArticles = results.flat();
-    ARTICLES = ARTICLES.filter((existing) => {
-      return newArticles.some((newArt) => newArt.link === existing.link || !areTitlesSimilar(existing.baslik, newArt.baslik));
-    });
-
-    for (let art of newArticles) {
-      const existingArticle = ARTICLES.find((existing) => {
-        return existing.link === art.link || areTitlesSimilar(existing.baslik, art.baslik);
-      });
-
-      if (!existingArticle) {
-        ARTICLES.unshift(art);
-      }
-    }
-
-    sortArticlesByTimestamp();
+    newArticles.forEach((art) => ARTICLES.add(JSON.stringify(art)));
     cleanupArticles();
   } catch (e) {
-    console.error("Abendblatt Haberleri çekerken hata oluştu:");
+    console.error("Abendblatt Haberleri çekerken hata oluştu:", e.message);
     setTimeout(scrapeNews, RETRY_INTERVAL);
   }
-}
-function sortArticlesByTimestamp() {
-  ARTICLES.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
 }
 
 function cleanupArticles() {
   const now = moment();
-  ARTICLES = ARTICLES.filter((art) => {
-    const articleTime = moment(art.timestamp);
+  ARTICLES = new Set([...ARTICLES].filter((art) => {
+    const article = JSON.parse(art);
+    const articleTime = moment(article.timestamp);
     const diff = now.diff(articleTime, 'milliseconds');
     return diff < EXPIRATION;
-  });
-}
-
-function areTitlesSimilar(title1, title2) {
-  const t1 = title1.toLowerCase().trim();
-  const t2 = title2.toLowerCase().trim();
-  return t1 === t2 || t1.includes(t2) || t2.includes(t1);
+  }));
 }
 
 function startAbendblattScraper() {
@@ -234,7 +212,6 @@ function startAbendblattScraper() {
   } else {
     console.log("Abendblatt Haberler güncelleniyor...");
   }
-
   scrapeNews();
   setInterval(() => {
     scrapeNews();
@@ -242,6 +219,6 @@ function startAbendblattScraper() {
 }
 
 function getAbendblattArticles() {
-  return ARTICLES;
+  return [...ARTICLES].map(art => JSON.parse(art));
 }
 module.exports = { startAbendblattScraper, getAbendblattArticles };

@@ -2,7 +2,7 @@ const axios = require("axios");
 const cheerio = require("cheerio");
 const moment = require("moment-timezone");
 
-const SCRAPE_INTERVAL = 5 * 60 * 1000; // Her 2 dakikada bir haber çekecek
+const SCRAPE_INTERVAL = 5 * 60 * 1000; // 5 dakika
 const EXPIRATION = 12 * 60 * 60 * 1000; // 12 saat
 const RETRY_INTERVAL = 30 * 60 * 1000; // 30 dakika sonra tekrar deneme
 let ARTICLES = [];
@@ -58,21 +58,20 @@ const getNews = async (url) => {
         newsItems.push(newsData);
       }
     });
+
     newsItems = newsItems.filter(item => {
       let timestamp = moment(item.timestamp, "YYYY-MM-DD HH:mm");
       return moment().diff(timestamp, 'hours') < EXPIRATION;
     });
+
     return newsItems;
   } catch (error) {
-    if (error.code === 'ECONNRESET') {
-      console.error('Gazeta Bağlantı sıfırlandı, yeniden deniyorum...');
+    console.error("Hata:", error.message);
+    if (error.code === 'ECONNRESET' || error.code === 'ETIMEDOUT' || error.response?.status === 404) {
+      console.error('Gazeta Bağlantı hatası, yeniden deniyorum...');
       setTimeout(() => getNews(url), RETRY_INTERVAL);
-    } else if (error.code === 'ETIMEDOUT') {
-      console.error('Gazeta Bağlantı zaman aşımına uğradı, yeniden deniyorum...');
-      setTimeout(() => getNews(url), RETRY_INTERVAL); 
     } else {
-      console.error("Gazeta Genel hata: " + error);
-      setTimeout(() => getNews(url), RETRY_INTERVAL);
+      return [];
     }
     return [];
   }
@@ -83,7 +82,7 @@ const loadMoreNews = async (nextPageUrl) => {
     const newsItems = await getNews(nextPageUrl);
     return newsItems;
   } catch (error) {
-    console.error("Gazeta Daha fazla haber çekme hatası:");
+    console.error("gazeta Daha fazla haber çekme hatası:", error.message);
     return [];
   }
 };
@@ -99,7 +98,7 @@ const updateArticles = (newArticles) => {
   });
   ARTICLES = ARTICLES.filter(article => {
     let timestamp = moment(article.timestamp, "YYYY-MM-DD HH:mm");
-    return moment().diff(timestamp, 'hours') <= EXPIRATION; // 12 saatten eski haberleri sil
+    return moment().diff(timestamp, 'hours') <= EXPIRATION;
   });
   ARTICLES.sort((a, b) => {
     const timeA = moment(a.timestamp, "YYYY-MM-DD HH:mm");
@@ -113,12 +112,10 @@ const scrapeNews = async () => {
   let shouldContinue = true;
 
   while (shouldContinue) {
-    await new Promise(resolve => setTimeout(resolve, 60000)); // 10 saniye bekle
     const newArticles = await getNews(currentPageUrl);
     updateArticles(newArticles);
     const $ = await axios.get(currentPageUrl).then(response => cheerio.load(response.data));
     const nextPageButton = $("a.b_showmorebtn-link").attr("href");
-
     if (nextPageButton) {
       const nextPageUrl = `https://www.gazeta.ru${nextPageButton}`;
       const nextArticles = await loadMoreNews(nextPageUrl);

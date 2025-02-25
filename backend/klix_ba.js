@@ -3,12 +3,13 @@ const cheerio = require("cheerio");
 const moment = require("moment-timezone");
 
 let ARTICLES = [];
+let seenLinks = new Set();
+let firstRun = false;
+
 const url = "https://www.klix.ba/najnovije";
 const turkeyTz = "Europe/Istanbul";
 
-let firstRun = false;
-
-const SCRAPE_INTERVAL = 5 * 60 * 1000;
+const SCRAPE_INTERVAL = 5 * 60 * 1000;  // 5 dakika
 const EXPIRATION = 12 * 60 * 60 * 1000;  // 12 saat
 const RETRY_INTERVAL = 30 * 60 * 1000;   // 30 dakika
 
@@ -20,7 +21,6 @@ const headers = {
 async function getLatestNews(url) {
   let newsList = [];
   let pageNumber = 0;
-
   while (true) {
     const pageUrl = `${url}?str=${pageNumber}`;
     try {
@@ -41,8 +41,7 @@ async function getLatestNews(url) {
         const title = $(el).find("h2").text().trim();
         const link = "https://www.klix.ba" + $(el).find("a[href]").attr("href");
         const description = $(el).find("p.hidden.md\\:block.text-base.mt-2.text-gray-500.truncate").text().trim() || "Açıklama yok";
-        const image = $(el).find("img").attr("srcset") || $(el).find("img").attr("data-srcset") || "Resim yok";
-                
+        const image = $(el).find("img").attr("srcset") || $(el).find("img").attr("data-srcset") || "Resim yok";  
         let timePosted = $(el).find("span").text().trim() || "Zaman bilgisi yok";
         timePosted = timePosted
           .replace(/minut|min/g, "dakika")
@@ -61,16 +60,18 @@ async function getLatestNews(url) {
 
         const currentTime = moment().tz(turkeyTz);
         const articleTime = currentTime.clone().subtract(timeInMinutes, 'minutes');
-
         if (currentTime.diff(articleTime, 'hours') <= 12) {
-          newsList.push({
-            title,
-            link,
-            description,
-            image,
-            timePosted: articleTime.format("YYYY-MM-DD HH:mm"),
-            articleTime
-          });
+          if (!seenLinks.has(link)) {
+            seenLinks.add(link);
+            newsList.push({
+              title,
+              link,
+              description,
+              image,
+              timePosted: articleTime.format("YYYY-MM-DD HH:mm"),
+              articleTime
+            });
+          }
         } else {
           foundOldArticle = true;
         }
@@ -99,31 +100,35 @@ async function scrapeNews() {
         if (existingIndex !== -1) {
           const existingArticle = ARTICLES[existingIndex];
           if (article.articleTime.isAfter(existingArticle.articleTime)) {
-            ARTICLES[existingIndex] = article;
+            ARTICLES[existingIndex] = article; 
           }
         } else {
           ARTICLES.push(article);
         }
       });
+
       ARTICLES.sort((a, b) => b.articleTime - a.articleTime);
       ARTICLES = ARTICLES.filter((article) => {
         return currentTime.diff(article.articleTime, 'hours') <= EXPIRATION;
       });
-      if(firstRun){
+
+      if (firstRun) {
         console.log("klix.ba Haberler güncelleniyor...");
-        await new Promise(resolve => setTimeout(resolve, SCRAPE_INTERVAL));
+      } else {
+        console.log("klix.ba İlk haber çekme işlemi başlatılıyor...");
       }
+
+      firstRun = true;
+      await new Promise(resolve => setTimeout(resolve, SCRAPE_INTERVAL));
     } catch (error) {
-      console.error("klix.ba ScrapeNews hatası:");
+      console.error("klix.ba ScrapeNews hatası:", error.message);
       await new Promise(resolve => setTimeout(resolve, RETRY_INTERVAL));
     }
   }
 }
 
 const startKlixNews = async () => {
-  console.log("klix.ba İlk haber çekme işlemi başlatılıyor...");
   await scrapeNews();
-  firstRun = true;
 };
 
 const getKlixArticles = () => {

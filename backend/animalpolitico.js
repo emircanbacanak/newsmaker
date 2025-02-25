@@ -7,8 +7,8 @@ const https = require('https');
 
 let ARTICLES = new Map();
 
-const SCRAPE_INTERVAL = 2 * 60 * 1000; // 2 dakika
-const EXPIRATION = 24 * 60 * 60 * 1000; // 24 saat (ms)
+const SCRAPE_INTERVAL = 5 * 60 * 1000; // 5 dakika
+const EXPIRATION = 12 * 60 * 60 * 1000; // 12 saat
 const BASE_URL = "https://www.animalpolitico.com";
 
 const axiosInstance = axios.create({
@@ -32,6 +32,7 @@ async function getNews() {
     const $ = cheerio.load(response.data);
     const now = moment().tz("America/Mexico_City").startOf('day');
     let seenLinks = new Set();
+
     $('div.grid.grid-cols-12.gap-4.border-b.border-b-gray-200.pb-4').each((i, container) => {
       const aTag = $(container).find('a').first();
       let link = aTag.attr('href');
@@ -146,7 +147,6 @@ async function getNews() {
     console.error('animalpolitico Haber çekme hatası:');
     setTimeout(getNews, 30 * 60 * 1000);
   }
-
   return newsList;
 }
 
@@ -154,42 +154,38 @@ async function scrapeNews() {
   try {
     const newArticles = await getNews();
     const now = moment().tz("America/Mexico_City").startOf('day');
-
     newArticles.forEach(article => {
       ARTICLES.set(article.link, article);
     });
 
     ARTICLES.forEach((article, key) => {
-      if (now.diff(moment(article.timestamp), 'days') >= 1) {
+      if (now.diff(moment(article.timestamp), 'milliseconds') >= EXPIRATION) {
         ARTICLES.delete(key);
       }
     });
-
     ARTICLES = new Map([...ARTICLES.entries()].sort((a, b) => 
       moment(b[1].timestamp).diff(moment(a[1].timestamp))
     ));
+
   } catch (err) {
-    console.error('animalpolitico Haber tarama hatası:');
+    console.error('animalpolitico Haber tarama hatası:', err);
     setTimeout(scrapeNews, 30 * 60 * 1000);
   }
 }
 
-function cleanupArticles() {
-  const now = moment().tz("America/Mexico_City").startOf('day');
-  ARTICLES.forEach((article, key) => {
-    if (now.diff(moment(article.timestamp)) >= EXPIRATION) {
-      ARTICLES.delete(key);
-    }
-  });
-}
+let isFirstRun = true;
 
 function backgroundTask() {
-  console.log('animalpolitico İlk haber çekme işlemi başlatılıyor...');
-  scrapeNews();
-  setInterval(() => {
+  if (isFirstRun) {
+    isFirstRun = false;
+    console.log('animalpolitico İlk haber çekme işlemi başlatılıyor...');
+  } else {
     console.log('animalpolitico Haberler güncelleniyor...');
-    scrapeNews();
-    cleanupArticles();
+  }
+  scrapeNews(); // İlk çalıştırma
+  setInterval(async () => {
+    await scrapeNews(); // 5 dakikada bir güncelleme
+    console.log('animalpolitico Haberler güncelleniyor...');
   }, SCRAPE_INTERVAL);
 }
 

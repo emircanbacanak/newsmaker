@@ -1,15 +1,14 @@
-const express = require('express');
-const axios = require('axios');
-const cheerio = require('cheerio');
-const moment = require('moment-timezone');
-const path = require('path');
-const app = express();
-let ARTICLES = [];
+const axios = require("axios");
+const cheerio = require("cheerio");
+const moment = require("moment-timezone");
+const path = require("path");
 
-const SCRAPE_INTERVAL = 1 * 60 * 1000;
-const EXPIRATION = 12 * 60 * 60 * 1000;
+let ARTICLES = new Set();  // Set kullanarak benzersiz verileri alıyoruz.
+const SCRAPE_INTERVAL = 5 * 60 * 1000; // 5 dakika
+const EXPIRATION = 12 * 60 * 60 * 1000; // 12 saat
 const BASE_URL = "https://www.usatoday.com";
 const NEWS_URL = "https://www.usatoday.com/news/nation/";
+const TZ = "Europe/Istanbul";
 
 function convertEtToTurkey(dateStr) {
     try {
@@ -23,7 +22,7 @@ function convertEtToTurkey(dateStr) {
             dateStr = `${dateStr} ${currentYear}`;
         }
         let dtEastern = moment.tz(dateStr, "h:mm A MMM D YYYY", "America/New_York");
-        return dtEastern.tz("Europe/Istanbul");
+        return dtEastern.tz(TZ);
     } catch (err) {
         console.log(`Geçersiz tarih formatı: ${dateStr}`);
         return null;
@@ -31,9 +30,7 @@ function convertEtToTurkey(dateStr) {
 }
 
 function getFullImageUrl(imagePath) {
-    if (!imagePath) {
-        return '';
-    }
+    if (!imagePath) return '';
     if (imagePath.startsWith('/')) {
         return BASE_URL + imagePath;
     }
@@ -41,7 +38,7 @@ function getFullImageUrl(imagePath) {
 }
 
 function getImageUrlToJPG(imagePath) {
-    if (!imagePath) return ''; 
+    if (!imagePath) return '';
     const jpgIndex = imagePath.indexOf('.jpg');
     return jpgIndex !== -1 ? imagePath.substring(0, jpgIndex + 4) : imagePath;
 }
@@ -51,7 +48,7 @@ async function getNews() {
     try {
         const response = await axios.get(NEWS_URL);
         const $ = cheerio.load(response.data);
-        const now = moment().tz("Europe/Istanbul");
+        const now = moment().tz(TZ);
         const twelveHoursAgo = now.clone().subtract(12, 'hours');
 
         $('div.gnt_m_ht a.gnt_m_he, div.gnt_m_ht a.gnt_m_tl').each((i, item) => {
@@ -70,10 +67,9 @@ async function getNews() {
                 const dateElem = $(item).find('div[data-c-dt]');
                 timeStr = dateElem.attr('data-c-dt') || "";
             }
-
-            let dtTurkey = timeStr ? convertEtToTurkey(timeStr) : moment().tz("Europe/Istanbul");
+            let dtTurkey = timeStr ? convertEtToTurkey(timeStr) : moment().tz(TZ);
             if (dtTurkey && dtTurkey.isAfter(twelveHoursAgo)) {
-                newsList.push({
+                const article = {
                     link,
                     resim: imgSrc,
                     baslik: title,
@@ -81,7 +77,9 @@ async function getNews() {
                     timestamp: dtTurkey.format("YYYY-MM-DD HH:mm"),
                     originalTimestamp: dtTurkey,
                     source: "usatoday.com"
-                });
+                };
+                // Set yapısı kullanarak benzersiz veriyi sağlıyoruz
+                ARTICLES.add(JSON.stringify(article));  
             }
         });
 
@@ -105,11 +103,10 @@ async function getNews() {
                 const pubDateStr = $(item).find('div[data-c-dt]').attr('data-c-dt');
                 timeStr = pubDateStr || "";
             }
-            const dtTurkey = timeStr ? convertEtToTurkey(timeStr) : moment().tz("Europe/Istanbul");
+            const dtTurkey = timeStr ? convertEtToTurkey(timeStr) : moment().tz(TZ);
             const timestamp = dtTurkey ? dtTurkey.format("YYYY-MM-DD HH:mm") : "Tarih bulunamadı";
-
             if (title) {
-                newsList.push({
+                const article = {
                     link,
                     resim: imgSrcToJPG,
                     baslik: title,
@@ -117,10 +114,11 @@ async function getNews() {
                     timestamp,
                     originalTimestamp: dtTurkey,
                     source: "usatoday.com"
-                });
+                };
+                // Set yapısı kullanarak benzersiz veriyi sağlıyoruz
+                ARTICLES.add(JSON.stringify(article));
             }
         });
-
     } catch (err) {
         console.error('Haber çekme hatası:', err.message);
     }
@@ -130,25 +128,28 @@ async function getNews() {
 async function scrapeNews() {
     try {
         const newArticles = await getNews();
-        const now = moment().tz("Europe/Istanbul");
-        newArticles.forEach(article => {
-            const existingArticleIndex = ARTICLES.findIndex(existing => existing.link === article.link);
-            if (existingArticleIndex !== -1) {
-                ARTICLES[existingArticleIndex] = article;
-            } else {
-                ARTICLES.unshift(article);
-            }
-        });
-        ARTICLES = ARTICLES.filter(art => now.diff(moment(art.originalTimestamp)) < EXPIRATION);
-        ARTICLES.sort((a, b) => moment(b.originalTimestamp).diff(moment(a.originalTimestamp)));
+        const now = moment().tz(TZ);
+        ARTICLES = new Set([...ARTICLES].filter(articleStr => {
+            const article = JSON.parse(articleStr);
+            return now.diff(moment(article.originalTimestamp)) < EXPIRATION;
+        }));
+        // Set verisini zaman damgasına göre sıralıyoruz.
+        ARTICLES = new Set([...ARTICLES].sort((a, b) => {
+            const articleA = JSON.parse(a);
+            const articleB = JSON.parse(b);
+            return moment(articleB.originalTimestamp).diff(moment(articleA.originalTimestamp));
+        }));
     } catch (err) {
         console.error('Haber tarama hatası:', err.message);
     }
 }
 
 function cleanupArticles() {
-    const now = moment().tz("Europe/Istanbul");
-    ARTICLES = ARTICLES.filter(art => now.diff(moment(art.originalTimestamp)) < EXPIRATION);
+    const now = moment().tz(TZ);
+    ARTICLES = new Set([...ARTICLES].filter(articleStr => {
+        const article = JSON.parse(articleStr);
+        return now.diff(moment(article.originalTimestamp)) < EXPIRATION;
+    }));
 }
 
 function backgroundTask() {
@@ -161,43 +162,25 @@ function backgroundTask() {
     }, SCRAPE_INTERVAL);
 }
 
-app.use(express.static(path.join(__dirname, '../frontend')));
-app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'frontend', 'index.html'));
-});
-
-app.get('/stream', (req, res) => {
-    res.setHeader('Content-Type', 'text/event-stream');
-    res.setHeader('Cache-Control', 'no-cache');
-    res.setHeader('Connection', 'keep-alive');
-    res.flushHeaders();
-    let lastData = '';
-    const intervalId = setInterval(() => {
-        cleanupArticles();
-        let sortedArticles = [...ARTICLES];
-        let data = JSON.stringify(sortedArticles.map(art => ({
-            baslik: art.baslik,
-            aciklama: art.aciklama,
-            link: art.link,
-            resim: art.resim,
-            timestamp: art.timestamp,
-            source: art.source
-        })));
-
-        if (data !== lastData) {
-            res.write(`data: ${data}\n\n`);
-            lastData = data;
-        }
-    }, 1000);
-
-    req.on('close', () => {
-        clearInterval(intervalId);
-        res.end();
+function getUSATodayArticles() {
+    return [...ARTICLES].map(articleStr => {
+        const article = JSON.parse(articleStr);
+        return {
+            baslik: article.baslik,
+            aciklama: article.aciklama,
+            link: article.link,
+            resim: article.resim,
+            timestamp: article.timestamp,
+            source: article.source
+        };
     });
-});
+}
 
-const port = process.env.PORT || 3000;
-app.listen(port, () => {
-    console.log(`Server ${port} portunda çalışıyor...`);
+function startUSATodayScraper() {
     backgroundTask();
-});
+}
+
+module.exports = {
+    startUSATodayScraper,
+    getUSATodayArticles
+};

@@ -3,7 +3,7 @@ const cheerio = require('cheerio');
 const moment = require('moment-timezone');
 
 const RETRY_INTERVAL = 30 * 60 * 1000; // 30 dakika
-const SCRAPE_INTERVAL = 5 * 60 * 1000;
+const SCRAPE_INTERVAL = 5 * 60 * 1000; // 5 dakika
 const EXPIRATION = 12 * 60 * 60 * 1000; // 12 saat
 
 let ARTICLES = [];
@@ -45,7 +45,7 @@ async function fetchPublishTimeFromArticleParallel(articleUrl) {
     try {
         const response = await axios.get(articleUrl, { headers });
         if (response.status !== 200) {
-            throw new Error(`Sayfaya erişilemedi: lefigaro `);
+            throw new Error(`Sayfaya erişilemedi: lefigaro`);
         }
         const $ = cheerio.load(response.data);
         const publishTimeTag = $(".fig-content-metas__pub-date time");
@@ -55,10 +55,9 @@ async function fetchPublishTimeFromArticleParallel(articleUrl) {
         let updateTime = updateTimeTag.attr("datetime") || null;
         let publishMoment = publishTime ? moment.tz(publishTime, "YYYY-MM-DDTHH:mm:ssZ", "Europe/Paris") : null;
         let updateMoment = updateTime ? moment.tz(updateTime, "YYYY-MM-DDTHH:mm:ssZ", "Europe/Paris") : null;
-
+        
         let turkeyPublishTime = publishMoment ? publishMoment.clone().tz(turkeyTz) : null;
         let turkeyUpdateTime = updateMoment ? updateMoment.clone().tz(turkeyTz) : null;
-
         let finalTime = turkeyPublishTime;
         if (turkeyUpdateTime && turkeyUpdateTime.isAfter(turkeyPublishTime)) {
             finalTime = turkeyUpdateTime;
@@ -147,30 +146,24 @@ async function fetchNews(url) {
 
 async function scrapeNews() {
     let isFirstRun = true;
-    const uniqueArticlesSet = new Set(); // Using a Set to track unique article links
+    const uniqueArticlesSet = new Set();
 
     while (true) {
         try {
             const newArticles = await fetchNews(url);
             const currentTime = moment().tz(turkeyTz);
-
             const validNewArticles = newArticles.filter(article => {
                 const publishTime = moment(article.publish_time, "DD MMMM YYYY HH:mm");
                 return currentTime.diff(publishTime, 'hours') <= EXPIRATION;
             });
-
-            // Add articles to the Set based on the link to avoid duplicates
             validNewArticles.forEach(article => {
                 if (!uniqueArticlesSet.has(article.link)) {
                     uniqueArticlesSet.add(article.link);
                 }
             });
-
-            // Convert Set back to an array of articles
             ARTICLES = Array.from(uniqueArticlesSet).map(link => {
                 return validNewArticles.find(article => article.link === link);
             });
-
             ARTICLES.sort((a, b) => {
                 const timeA = moment(a.publish_time, "DD MMMM YYYY HH:mm");
                 const timeB = moment(b.publish_time, "DD MMMM YYYY HH:mm");
@@ -191,13 +184,12 @@ async function scrapeNews() {
         await new Promise(resolve => setTimeout(resolve, SCRAPE_INTERVAL));
     }
 }
-
 const startlefigaroNews = async () => {
     await scrapeNews();
 };
 
 const getlefigaroArticles = () => {
-    return ARTICLES.filter(article => article && article.title) // sadece 'title' özelliği olanları al
+    return ARTICLES.filter(article => article && article.title)
     .map(article => ({
         baslik: article.title,
         aciklama: article.description,
@@ -207,6 +199,5 @@ const getlefigaroArticles = () => {
         source: "lefigaro.fr",
     }));
 };
-
 
 module.exports = { startlefigaroNews, getlefigaroArticles };

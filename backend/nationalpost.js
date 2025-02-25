@@ -12,67 +12,70 @@ const headers = {
   'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
 };
 
+let isFirstRun = true;
 const getNews = async (url) => {
   try {
     const { data: html } = await axios.get(url, { headers });
     const $ = cheerio.load(html);
     let newsItems = [];
     const seenTitles = new Set();
-
     $("article").each((index, element) => {
       const newsElem = $(element);
       let newsData = {};
       let titleTag = newsElem.find("h2, h3").first();
       const title = titleTag.text().trim() || "Başlık yok";
       if (!seenTitles.has(title)) {
-        newsData.title = title;
-        let href = newsElem.find("a").attr("href");
-        if (href && !href.startsWith("https://")) {
-          href = `https://nationalpost.com${href}`;
-        }
-        newsData.link = href;
-        const imgTag = newsElem.find("img").attr("src");
-        const imgTag2 = imgTag ? imgTag.split('.jpg')[0] + '.jpg' : "Resim yok";
-        newsData.img = imgTag2 || "Resim yok";
-        let time = newsElem.find(".article-card__time-clamp").text().trim();
-        let timestamp;
-
-        if (time) {
-          const timeRegex = /(\d+)\s*(hours?|minutes?|seconds?|days?)\s*ago/i;
-          const match = time.match(timeRegex);
-
-          if (match) {
-            const value = parseInt(match[1]);
-            const unit = match[2].toLowerCase();
-            if (unit.includes("hour")) {
-              timestamp = moment().subtract(value, 'hours').format("YYYY-MM-DD HH:mm");
-            } else if (unit.includes("minute")) {
-              timestamp = moment().subtract(value, 'minutes').format("YYYY-MM-DD HH:mm");
-            } else if (unit.includes("second")) {
-              timestamp = moment().subtract(value, 'seconds').format("YYYY-MM-DD HH:mm");
-            } else if (unit.includes("day")) {
-              timestamp = moment().subtract(value, 'days').format("YYYY-MM-DD HH:mm");
-            }
-          } else {
-            if (moment(time, "MMMM D, YYYY", true).isValid()) {
-              timestamp = moment.tz(time, "MMMM D, YYYY", TZ).format("YYYY-MM-DD HH:mm");
-            } else if (moment(time, "YYYY-MM-DD HH:mm", true).isValid()) {
-              timestamp = moment.tz(time, "YYYY-MM-DD HH:mm", TZ).format("YYYY-MM-DD HH:mm");
-            } else {
-              console.error("nationalpost Bilinmeyen tarih formatı: " + time +" : "+ link);
-              timestamp = moment().format("YYYY-MM-DD HH:mm");
-            }
+        try {
+          newsData.title = title;
+          let href = newsElem.find("a").attr("href");
+          if (href && !href.startsWith("https://")) {
+            href = `https://nationalpost.com${href}`;
           }
-          newsData.timestamp = timestamp;
-          newsData.publish_time = moment(timestamp).format("HH:mm");
-        }
+          newsData.link = href;
+          const imgTag = newsElem.find("img").attr("src");
+          const imgTag2 = imgTag ? imgTag.split('.jpg')[0] + '.jpg' : "Resim yok";
+          newsData.img = imgTag2 || "Resim yok";
+          let time = newsElem.find(".article-card__time-clamp").text().trim();
+          let timestamp;
 
-        let descriptionTag = newsElem.find("p.article-card__excerpt").text().trim();
-        newsData.description = descriptionTag || "Açıklama yok";
-        if (newsData.timestamp) {
-          newsData.source = "nationalpost.com";
-          newsItems.push(newsData);
-          seenTitles.add(title);
+          if (time) {
+            const timeRegex = /(\d+)\s*(hours?|minutes?|seconds?|days?)\s*ago/i;
+            const match = time.match(timeRegex);
+            if (match) {
+              const value = parseInt(match[1]);
+              const unit = match[2].toLowerCase();
+              if (unit.includes("hour")) {
+                timestamp = moment().subtract(value, 'hours').format("YYYY-MM-DD HH:mm");
+              } else if (unit.includes("minute")) {
+                timestamp = moment().subtract(value, 'minutes').format("YYYY-MM-DD HH:mm");
+              } else if (unit.includes("second")) {
+                timestamp = moment().subtract(value, 'seconds').format("YYYY-MM-DD HH:mm");
+              } else if (unit.includes("day")) {
+                timestamp = moment().subtract(value, 'days').format("YYYY-MM-DD HH:mm");
+              }
+            } else {
+              if (moment(time, "MMMM D, YYYY", true).isValid()) {
+                timestamp = moment.tz(time, "MMMM D, YYYY", TZ).format("YYYY-MM-DD HH:mm");
+              } else if (moment(time, "YYYY-MM-DD HH:mm", true).isValid()) {
+                timestamp = moment.tz(time, "YYYY-MM-DD HH:mm", TZ).format("YYYY-MM-DD HH:mm");
+              } else {
+                console.error("nationalpost Bilinmeyen tarih formatı: " + time + " : " + newsData.link);
+                timestamp = moment().format("YYYY-MM-DD HH:mm");
+              }
+            }
+            newsData.timestamp = timestamp;
+            newsData.publish_time = moment(timestamp).format("HH:mm");
+          }
+
+          let descriptionTag = newsElem.find("p.article-card__excerpt").text().trim();
+          newsData.description = descriptionTag || "Açıklama yok";
+          if (newsData.timestamp) {
+            newsData.source = "nationalpost.com";
+            newsItems.push(newsData);
+            seenTitles.add(title);
+          }
+        } catch (articleError) {
+          console.error("Makale işlenirken hata oluştu: ", articleError);
         }
       }
     });
@@ -81,6 +84,7 @@ const getNews = async (url) => {
     newsItems = newsItems.filter(item => moment(item.timestamp, "YYYY-MM-DD HH:mm").isAfter(twelveHoursAgo));
     return newsItems;
   } catch (error) {
+    console.error("newsData Zaman bilgisi alınamadı :" + url);
     return [];
   }
 };
@@ -140,9 +144,9 @@ const computeRelativeTime = (timestampStr) => {
 };
 
 const startNationalPostNews = async () => {
-  console.log("nationalpost İlk haber çekme işlemi başlatılıyor");
+  console.log(isFirstRun ? "nationalpost İlk haber çekme işlemi başlatılıyor" : "nationalpost Haberler güncelleniyor...");
+  isFirstRun = false;
   await scrapeNews();
-  
   setInterval(async () => {
     console.log("nationalpost Haberler güncelleniyor...");
     try {

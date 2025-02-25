@@ -6,16 +6,17 @@ www.repubblica.it ✅
 www.gazeta.ru ✅ ✅
 www.nationalpost.com ✅
 www.globaltimes.cn ✅
-www.news.naver.com/ ✅
+www.news.naver.com ✅
 www.news.com.au ✅ ✅
 www.klix.ba ✅ ✅ ✅
 www.lefigaro.fr ✅
 www.japannews.yomiuri.co.jp ✅✅
 www.animalpolitico.com ✅✅
 www.telegraaf.nl✅✅
-www.theafricareport.com ✅✅
+www.usatoday.com ✅✅
+www.thesun.co.uk ✅✅
 
 www.standard.co.uk 
-www.thesun.co.uk 
-www.tribunnews.com
-www.usatoday.com 
+
+www.tribunnews.com ✅
+www.theafricareport.com ✅

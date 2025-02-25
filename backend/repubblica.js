@@ -2,13 +2,13 @@ const axios = require("axios");
 const cheerio = require("cheerio");
 const moment = require("moment-timezone");
 
-const SCRAPE_INTERVAL = 5 * 60 * 1000;     // Her 2 dakikada bir haber çekme
-const RETRY_INTERVAL = 30 * 60 * 1000;    // Hata durumunda 30 dk bekleme süresi
-
-let ARTICLES = [];
+const SCRAPE_INTERVAL = 5 * 60 * 1000; // 5 dakika
+const RETRY_INTERVAL = 30 * 60 * 1000; // 30 dakika
+const EXPIRATION = 12 * 60 * 60 * 1000; // 12 saat
 const TZ_ITALY = "Europe/Rome";
 const TZ_TURKEY = "Europe/Istanbul";
 
+let ARTICLES = new Set(); 
 let firstRun = true;
 
 const getArticleTime = async (articleUrl) => {
@@ -76,7 +76,7 @@ const getNews = async () => {
 
     return newsItemsWithTime.filter(item => item !== null);
   } catch (error) {
-    console.log("repubblica 30 dakika sonra tekrar denenecek...");
+    console.log("repubblica sayfa erişim hatası, 30 dakika sonra tekrar denenecek...");
     setTimeout(startRepubblicaScraper, RETRY_INTERVAL);
     return [];
   }
@@ -88,10 +88,9 @@ const verifyArticles = async () => {
     try {
       await axios.get(article.link, { timeout: 15000 });
       validArticles.push(article);
-    } catch (err) {
-    }
+    } catch (err) {    }
   }
-  ARTICLES = validArticles;
+  ARTICLES = new Set(validArticles);
 };
 
 const startRepubblicaScraper = async () => {
@@ -102,29 +101,25 @@ const startRepubblicaScraper = async () => {
   try {
     const newArticles = await getNews();
     newArticles.forEach(article => {
-      if (!ARTICLES.some(existing => existing.title === article.title)) {
-        ARTICLES.push(article);
-      } else {
-        ARTICLES = ARTICLES.map(existing => 
-          existing.title === article.title ? { ...existing, ...article } : existing
-        );
+      if (![...ARTICLES].some(existing => existing.title === article.title)) {
+        ARTICLES.add(article);
       }
     });
-    const twelveHoursAgo = moment().subtract(24, 'hours');
-    ARTICLES = ARTICLES.filter(article => moment(article.timestamp, "YYYY-MM-DD HH:mm").isAfter(twelveHoursAgo));
+    const twelveHoursAgo = moment().subtract(EXPIRATION, 'milliseconds');
+    ARTICLES = new Set([...ARTICLES].filter(article => moment(article.timestamp, "YYYY-MM-DD HH:mm").isAfter(twelveHoursAgo)));
     await verifyArticles();
-
   } catch (error) {
-    console.log("Repubblica 30 dakika sonra tekrar denenecek...");
+    console.log("Repubblica hata durumu, 30 dakika sonra tekrar denenecek...");
     return setTimeout(startRepubblicaScraper, RETRY_INTERVAL);
   }
+
   firstRun = false;
   console.log("Repubblica Haberler güncelleniyor...");
-  setTimeout(startRepubblicaScraper, SCRAPE_INTERVAL);
+  setTimeout(startRepubblicaScraper, SCRAPE_INTERVAL); 
 };
 
 const getRepubblicaArticles = () => {
-  return ARTICLES.map(art => ({
+  return [...ARTICLES].map(art => ({
     baslik: art.title,
     aciklama: art.description || '',
     link: art.link,
@@ -134,4 +129,4 @@ const getRepubblicaArticles = () => {
   }));
 };
 
-module.exports = { startRepubblicaScraper, getRepubblicaArticles};
+module.exports = { startRepubblicaScraper, getRepubblicaArticles };

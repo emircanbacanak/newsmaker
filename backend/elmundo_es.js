@@ -51,7 +51,7 @@ async function getNews() {
       }
     });
   } catch (err) {
-    console.error("Elmundo.es Haberler çekilirken hata oluştu:", err);
+    console.error("Elmundo.es Haberler çekilirken hata oluştu:");
   }
   return newsList;
 }

@@ -59,9 +59,10 @@ const getNews = async (url) => {
       }
     });
 
+    // Filtreleme: sadece son 12 saatteki haberleri alıyoruz
     newsItems = newsItems.filter(item => {
       let timestamp = moment(item.timestamp, "YYYY-MM-DD HH:mm");
-      return moment().diff(timestamp, 'hours') < EXPIRATION;
+      return moment().diff(timestamp, 'hours') <= EXPIRATION;
     });
 
     return newsItems;
@@ -82,7 +83,7 @@ const loadMoreNews = async (nextPageUrl) => {
     const newsItems = await getNews(nextPageUrl);
     return newsItems;
   } catch (error) {
-    console.error("gazeta Daha fazla haber çekme hatası:", error.message);
+    console.error("gazeta Daha fazla haber çekme hatası:");
     return [];
   }
 };
@@ -114,24 +115,27 @@ const scrapeNews = async () => {
   while (shouldContinue) {
     const newArticles = await getNews(currentPageUrl);
     updateArticles(newArticles);
-    const $ = await axios.get(currentPageUrl).then(response => cheerio.load(response.data));
-    const nextPageButton = $("a.b_showmorebtn-link").attr("href");
-    if (nextPageButton) {
-      const nextPageUrl = `https://www.gazeta.ru${nextPageButton}`;
-      const nextArticles = await loadMoreNews(nextPageUrl);
-      const oldestArticle = nextArticles.find(article => {
-        const timestamp = moment(article.timestamp, "YYYY-MM-DD HH:mm");
-        return moment().diff(timestamp, "hours") > EXPIRATION;
-      });
+    
+    // Eğer sayfada son 12 saatten eski bir haber varsa, durdur
+    const oldestArticle = newArticles.find(article => {
+      const timestamp = moment(article.timestamp, "YYYY-MM-DD HH:mm");
+      return moment().diff(timestamp, "hours") >= EXPIRATION;
+    });
 
-      if (oldestArticle) {
-        shouldContinue = false;
-      } else {
+    if (oldestArticle) {
+      shouldContinue = false; // Son 12 saatten eski bir haber bulunduğunda durdur
+    } else {
+      const $ = await axios.get(currentPageUrl).then(response => cheerio.load(response.data));
+      const nextPageButton = $("a.b_showmorebtn-link").attr("href");
+
+      if (nextPageButton) {
+        const nextPageUrl = `https://www.gazeta.ru${nextPageButton}`;
+        const nextArticles = await loadMoreNews(nextPageUrl);
         updateArticles(nextArticles);
         currentPageUrl = nextPageUrl;
+      } else {
+        shouldContinue = false;
       }
-    } else {
-      shouldContinue = false;
     }
   }
 };

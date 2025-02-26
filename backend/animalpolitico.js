@@ -2,18 +2,22 @@ const axios = require('axios');
 const cheerio = require('cheerio');
 const moment = require('moment-timezone');
 require('moment/locale/es');
+require('moment/locale/tr');
 const http = require('http');
 const https = require('https');
 
 let ARTICLES = new Map();
 
-const SCRAPE_INTERVAL = 5 * 60 * 1000; // 5 dakika
-const EXPIRATION = 12 * 60 * 60 * 1000; // 12 saat
+const SCRAPE_INTERVAL = 5 * 60 * 1000; 
+const EXPIRATION = 12 * 60 * 60 * 1000;
 const BASE_URL = "https://www.animalpolitico.com";
 
 const axiosInstance = axios.create({
   baseURL: BASE_URL,
-  headers: { 'Accept-Encoding': 'gzip, deflate' },
+  headers: { 
+    'Accept-Encoding': 'gzip, deflate',
+    'Content-Type': 'application/json; charset=UTF-8',
+  },
   httpAgent: new http.Agent({ keepAlive: true }),
   httpsAgent: new https.Agent({ keepAlive: true }),
 });
@@ -55,7 +59,7 @@ async function getNews() {
         aciklama: category,
         timestamp: now.format("YYYY-MM-DD"),
         source: "animalpolitico.com",
-        saat: null,
+        saat: "null"
       });
     });
 
@@ -82,7 +86,7 @@ async function getNews() {
           aciklama: category,
           timestamp: now.format("YYYY-MM-DD"),
           source: "animalpolitico.com",
-          saat: null,
+          saat: "null"
         });
       });
     });
@@ -110,7 +114,7 @@ async function getNews() {
           aciklama: category,
           timestamp: now.format("YYYY-MM-DD"),
           source: "animalpolitico.com",
-          saat: null,
+          saat: "null"
         });
       });
     });
@@ -138,7 +142,7 @@ async function getNews() {
           aciklama: category,
           timestamp: now.format("YYYY-MM-DD"),
           source: "animalpolitico.com",
-          saat: null,
+          saat: "null"
         });
       });
     });
@@ -168,7 +172,7 @@ async function scrapeNews() {
     ));
 
   } catch (err) {
-    console.error('animalpolitico Haber tarama hatası:', err);
+    console.error('animalpolitico Haber tarama hatası:');
     setTimeout(scrapeNews, 30 * 60 * 1000);
   }
 }
@@ -182,9 +186,9 @@ function backgroundTask() {
   } else {
     console.log('animalpolitico Haberler güncelleniyor...');
   }
-  scrapeNews(); // İlk çalıştırma
+  scrapeNews();
   setInterval(async () => {
-    await scrapeNews(); // 5 dakikada bir güncelleme
+    await scrapeNews(); 
     console.log('animalpolitico Haberler güncelleniyor...');
   }, SCRAPE_INTERVAL);
 }
@@ -195,9 +199,9 @@ function getAnimalpoliticoArticles() {
     aciklama: art.aciklama,
     link: art.link,
     resim: art.resim,
-    timestamp: moment(art.timestamp).format("DD MMMM YYYY"),
+    timestamp: moment(art.timestamp).format("DD MMMM YYYY"), 
     source: art.source,
-    saat: art.saat,
+    saat: "null"
   }));
 }
 

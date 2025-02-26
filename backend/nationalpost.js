@@ -59,7 +59,6 @@ const getNews = async (url) => {
               } else if (moment(time, "YYYY-MM-DD HH:mm", true).isValid()) {
                 timestamp = moment.tz(time, "YYYY-MM-DD HH:mm", TZ).format("YYYY-MM-DD HH:mm");
               } else {
-                console.error("nationalpost Bilinmeyen tarih formatı: " + time + " : " + newsData.link);
                 timestamp = moment().format("YYYY-MM-DD HH:mm");
               }
             }
@@ -68,14 +67,14 @@ const getNews = async (url) => {
           }
 
           let descriptionTag = newsElem.find("p.article-card__excerpt").text().trim();
-          newsData.description = descriptionTag || "Açıklama yok";
+          newsData.description = descriptionTag || "";
           if (newsData.timestamp) {
             newsData.source = "nationalpost.com";
             newsItems.push(newsData);
             seenTitles.add(title);
           }
         } catch (articleError) {
-          console.error("Makale işlenirken hata oluştu: ", articleError);
+          console.error("Makale işlenirken hata oluştu: ");
         }
       }
     });
@@ -84,7 +83,7 @@ const getNews = async (url) => {
     newsItems = newsItems.filter(item => moment(item.timestamp, "YYYY-MM-DD HH:mm").isAfter(twelveHoursAgo));
     return newsItems;
   } catch (error) {
-    console.error("newsData Zaman bilgisi alınamadı :" + url);
+
     return [];
   }
 };

@@ -8,6 +8,7 @@ const BASE_URL = "https://www.news.com.au/national/breaking-news";
 const SCRAPE_INTERVAL = 5 * 60 * 1000; // 5 dakika
 const RETRY_INTERVAL = 30 * 60 * 1000; // 30 dakika bekleme süresi
 const EXPIRATION = 12 * 60 * 60 * 1000; // 12 saat
+let isFirstRun = true;
 
 const headers = {
   "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
@@ -47,7 +48,7 @@ const getNews = async () => {
         let description = $(article).find("p.storyblock_standfirst").text().trim();
         let dtTurkey = await getArticleTimestamp(link);
         if (dtTurkey) {
-          const twelveHoursAgo = moment().subtract(12, "hours");
+          const twelveHoursAgo = moment().subtract(EXPIRATION, "hours");
           if (dtTurkey.isSameOrAfter(twelveHoursAgo)) {
             const articleData = {
               link,
@@ -96,11 +97,10 @@ const scrapeNews = async () => {
     }
   });
 
-  ARTICLES = new Set([...ARTICLES].filter((article) => now.diff(moment(article.timestamp), "hours") <= 12));
+  ARTICLES = new Set([...ARTICLES].filter((article) => now.diff(moment(article.timestamp), "hours") <= EXPIRATION));
   if (isDataUpdated) {
     sendDataToClients();
   }
-  console.log("news.com Haberler güncelleniyor...");
   setTimeout(scrapeNews, SCRAPE_INTERVAL);
 };
 
@@ -117,7 +117,12 @@ const sendDataToClients = () => {
 };
 
 const startnews_com = async () => {
-  console.log("news.com.au İlk haber çekme işlemi başlatılıyor...");
+  if (isFirstRun) {
+    console.log("news.com İlk haber çekme işlemi başlatılıyor...");
+    isFirstRun = false;
+  } else {
+    console.log("news.com Haberler güncelleniyor...");
+  }
   await scrapeNews();
 };
 const getnews_comArticles = () => sendDataToClients();

@@ -1,7 +1,6 @@
 const axios = require("axios");
 const cheerio = require("cheerio");
 const moment = require("moment-timezone");
-const path = require("path");
 
 let ARTICLES = new Set();  // Set kullanarak benzersiz verileri alıyoruz.
 const SCRAPE_INTERVAL = 5 * 60 * 1000; // 5 dakika
@@ -24,7 +23,7 @@ function convertEtToTurkey(dateStr) {
         let dtEastern = moment.tz(dateStr, "h:mm A MMM D YYYY", "America/New_York");
         return dtEastern.tz(TZ);
     } catch (err) {
-        console.log(`Geçersiz tarih formatı: ${dateStr}`);
+        console.log(`usatoday Geçersiz tarih formatı: ${dateStr}`);
         return null;
     }
 }
@@ -78,8 +77,8 @@ async function getNews() {
                     originalTimestamp: dtTurkey,
                     source: "usatoday.com"
                 };
-                // Set yapısı kullanarak benzersiz veriyi sağlıyoruz
                 ARTICLES.add(JSON.stringify(article));  
+                newsList.push(article);
             }
         });
 
@@ -115,12 +114,12 @@ async function getNews() {
                     originalTimestamp: dtTurkey,
                     source: "usatoday.com"
                 };
-                // Set yapısı kullanarak benzersiz veriyi sağlıyoruz
                 ARTICLES.add(JSON.stringify(article));
+                newsList.push(article); 
             }
         });
     } catch (err) {
-        console.error('Haber çekme hatası:', err.message);
+        console.error('usatoday Haber çekme hatası:');
     }
     return newsList;
 }
@@ -133,14 +132,13 @@ async function scrapeNews() {
             const article = JSON.parse(articleStr);
             return now.diff(moment(article.originalTimestamp)) < EXPIRATION;
         }));
-        // Set verisini zaman damgasına göre sıralıyoruz.
         ARTICLES = new Set([...ARTICLES].sort((a, b) => {
             const articleA = JSON.parse(a);
             const articleB = JSON.parse(b);
             return moment(articleB.originalTimestamp).diff(moment(articleA.originalTimestamp));
         }));
     } catch (err) {
-        console.error('Haber tarama hatası:', err.message);
+        console.error('usatoday Haber tarama hatası:');
     }
 }
 
@@ -153,10 +151,10 @@ function cleanupArticles() {
 }
 
 function backgroundTask() {
-    console.log('İlk haber çekme işlemi başlatılıyor...');
+    console.log('usatoday İlk haber çekme işlemi başlatılıyor...');
     scrapeNews();
     setInterval(() => {
-        console.log('Haberler güncelleniyor...');
+        console.log('usatoday Haberler güncelleniyor...');
         scrapeNews();
         cleanupArticles();
     }, SCRAPE_INTERVAL);

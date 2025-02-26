@@ -1,25 +1,25 @@
 const express = require("express");
 const path = require("path");
 
-//const { startAbendblattScraper, getAbendblattArticles } = require("./abendblatt");
-//const { startAnimalpoliticoScraper, getAnimalpoliticoArticles  } = require("./animalpolitico")
-//const { startElmundoScraper, getElmundoArticles } = require("./elmundo_es");
-//const { startFolhaScraper, getFolhaArticles } = require("./folha_uol");
-//const { startGazetaScraper, getGazetaArticles } = require("./gazeta_ru");
-//const { startGlobalTimesScraper, getGlobalTimesArticles } = require("./globaltimes");
-//const { startHindustanTimesScraper, getHindustanTimesArticles } = require("./hindustantimes");
-//const { startJapanNews, getJapanNewsArticles } = require("./japannews");
-//const { startKlixNews, getKlixArticles } = require("./klix_ba");
-//const { startlefigaroNews, getlefigaroArticles } = require("./lefigaro");
-//const { startNationalPostNews, getNationalPostArticles } = require("./nationalpost")
-//const { startnews_com, getnews_comArticles } = require("./news_com")
-//const { startNaverNews, getNaverArticles  } = require("./news_naver")
-//const { startRepubblicaScraper, getRepubblicaArticles  } = require("./repubblica")
-//const { startTelegraafScraper, getTelegraafArticles } = require("./telegraaf")
-///const { startAfricaReportScraper, getAfricaReportArticles  } = require("./theafricareport")
-//const { startTheSunScraper, getTheSunArticles  } = require("./thesun")
-///const { startTribunnewsScraper, getTribunnewsArticles  } = require("./tribunnews")
-//const { startUSATodayScraper, getUSATodayArticles  } = require("./usatoday")
+const { startAbendblattScraper, getAbendblattArticles } = require("./abendblatt");
+const { startAnimalpoliticoScraper, getAnimalpoliticoArticles  } = require("./animalpolitico")
+const { startElmundoScraper, getElmundoArticles } = require("./elmundo_es");
+const { startFolhaScraper, getFolhaArticles } = require("./folha_uol");
+const { startGazetaScraper, getGazetaArticles } = require("./gazeta_ru");
+const { startGlobalTimesScraper, getGlobalTimesArticles } = require("./globaltimes");
+const { startHindustanTimesScraper, getHindustanTimesArticles } = require("./hindustantimes");
+const { startJapanNews, getJapanNewsArticles } = require("./japannews");
+const { startKlixNews, getKlixArticles } = require("./klix_ba");
+const { startlefigaroNews, getlefigaroArticles } = require("./lefigaro");
+const { startNationalPostNews, getNationalPostArticles } = require("./nationalpost")
+const { startnews_com, getnews_comArticles } = require("./news_com")
+const { startNaverNews, getNaverArticles  } = require("./news_naver")
+const { startRepubblicaScraper, getRepubblicaArticles  } = require("./repubblica")
+const { startTelegraafScraper, getTelegraafArticles } = require("./telegraaf")
+const { startAfricaReportScraper, getAfricaReportArticles  } = require("./theafricareport")
+const { startTheSunScraper, getTheSunArticles  } = require("./thesun")
+const { startTribunnewsScraper, getTribunnewsArticles  } = require("./tribunnews")
+const { startUSATodayScraper, getUSATodayArticles  } = require("./usatoday")
 const { startStandardScraper, getStandardArticles  } = require("./standard")
 
 const app = express();
@@ -36,26 +36,26 @@ app.get("/stream", (req, res) => {
     let lastData = "";
     const intervalId = setInterval(() => {
         let allArticles = [
-            //...getAbendblattArticles(),
-            //...getElmundoArticles(),
-            //...getFolhaArticles(),
-            //...getGazetaArticles(),
-            //...getGlobalTimesArticles(),
-            //...getHindustanTimesArticles(),
-            //...getJapanNewsArticles(),
-            //...getKlixArticles(),
-            //...getlefigaroArticles(),
-            //...getNationalPostArticles(),
-            //...getnews_comArticles(),
-            //...getNaverArticles(),
-            //...getRepubblicaArticles(),
-            //...getAnimalpoliticoArticles(),
-            //...getTelegraafArticles(),
-            ///...getAfricaReportArticles(),
-            //...getTheSunArticles(),
-            ///...getTribunnewsArticles(),
+            ...getAbendblattArticles(),
+            ...getAnimalpoliticoArticles(),
+            ...getElmundoArticles(),
+            ...getFolhaArticles(),
+            ...getGazetaArticles(),
+            ...getGlobalTimesArticles(),
+            ...getHindustanTimesArticles(),
+            ...getJapanNewsArticles(),
+            ...getKlixArticles(),
+            ...getlefigaroArticles(),
+            ...getNationalPostArticles(),
+            ...getnews_comArticles(),
+            ...getNaverArticles(),
+            ...getRepubblicaArticles(),
+            ...getTelegraafArticles(),
+            ...getAfricaReportArticles(),
+            ...getTheSunArticles(),
+            ...getTribunnewsArticles(),
             ...getStandardArticles(),
-            //...getUSATodayArticles(),
+            ...getUSATodayArticles(),
         ];
 
         allArticles.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
@@ -64,7 +64,7 @@ app.get("/stream", (req, res) => {
             res.write(`data: ${data}\n\n`);
             lastData = data;
         }
-    }, 5000);
+    }, 1000);
 
     req.on("close", () => {
         clearInterval(intervalId);
@@ -78,24 +78,24 @@ app.get("/", (req, res) => {
 
 app.listen(port, () => {
     console.log(`Server ${port} portunda çalışıyor...`);
-    //startAbendblattScraper();
-    //startElmundoScraper();
-    //startFolhaScraper();
-    //startGazetaScraper(); 
-    //startGlobalTimesScraper();
-    //startHindustanTimesScraper();
-    //startJapanNews();
-    //startKlixNews();
-    //startlefigaroNews();
-    //startNationalPostNews();
-    //startnews_com();
-    //startNaverNews();
-    //startRepubblicaScraper();
-    //startAnimalpoliticoScraper();
-    //startTelegraafScraper();
-    ///startAfricaReportScraper();
-    //startTheSunScraper();
-    ///startTribunnewsScraper();
+    startAbendblattScraper();
+    startAnimalpoliticoScraper();
+    startElmundoScraper();
+    startFolhaScraper();
+    startGazetaScraper(); 
+    startGlobalTimesScraper();
+    startHindustanTimesScraper();
+    startJapanNews();
+    startKlixNews();
+    startlefigaroNews();
+    startNationalPostNews();
+    startnews_com();
+    startNaverNews();
+    startRepubblicaScraper(); 
+    startTelegraafScraper();
+    startAfricaReportScraper();
+    startTheSunScraper();
+    startTribunnewsScraper();
     startStandardScraper()
-    //startUSATodayScraper();
+    startUSATodayScraper();
 });

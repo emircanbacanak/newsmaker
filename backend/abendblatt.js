@@ -2,7 +2,7 @@ const axios = require("axios");
 const cheerio = require("cheerio");
 const moment = require("moment");
 
-let ARTICLES = new Set(); // Set kullanarak benzersiz haberler
+let ARTICLES = new Set();
 const SCRAPE_INTERVAL = 5 * 60 * 1000; // 5 dakika
 const EXPIRATION = 12 * 60 * 60 * 1000; // 12 saat
 const RETRY_INTERVAL = 30 * 60 * 1000; // 30 dakika
@@ -34,6 +34,12 @@ async function getTimestampFromLink(link) {
 }
 
 async function scrapeNews() {
+  if (isFirstRun) {
+    console.log("Abendblatt İlk haber çekme işlemi başlatılıyor...");
+    isFirstRun = false;
+  } else {
+    console.log("Abendblatt Haberler güncelleniyor...");
+  }
   const url = "https://www.abendblatt.de/";
   try {
     const response = await axios.get(url, { timeout: 60000 });
@@ -206,16 +212,8 @@ function cleanupArticles() {
 }
 
 function startAbendblattScraper() {
-  if (isFirstRun) {
-    console.log("Abendblatt İlk haber çekme işlemi başlatılıyor...");
-    isFirstRun = false;
-  } else {
-    console.log("Abendblatt Haberler güncelleniyor...");
-  }
   scrapeNews();
-  setInterval(() => {
-    scrapeNews();
-  }, SCRAPE_INTERVAL);
+  setInterval(scrapeNews, SCRAPE_INTERVAL);
 }
 
 function getAbendblattArticles() {

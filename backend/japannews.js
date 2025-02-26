@@ -41,7 +41,14 @@ const getJapanNews = async () => {
   while (true) {
     const url = `https://japannews.yomiuri.co.jp/latestnews/page/${page}/`;
     try {
-      const response = await axios.get(url);
+      const response = await axios.get(url, {
+        timeout: 25000,
+        headers: {
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/100.0.4896.127 Safari/537.36",
+          "Accept-Language": "en-US,en;q=0.9",
+        },
+      });
+      
       const $ = cheerio.load(response.data);
       let newsItems = [];
       $("li.clearfix").each((index, element) => {

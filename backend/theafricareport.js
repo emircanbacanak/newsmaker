@@ -5,7 +5,7 @@ const moment = require("moment-timezone");
 
 puppeteer.use(puppeteerStealth());
 
-const SCRAPE_INTERVAL = 12 * 60 * 1000; // 5 dakika
+const SCRAPE_INTERVAL = 5 * 60 * 1000; // 5 dakika
 const RETRY_INTERVAL = 30 * 60 * 1000; // 30 dakika
 const EXPIRATION = 12 * 60 * 60 * 1000; // 12 saat
 const ARTICLES = new Set();
@@ -17,7 +17,7 @@ const getArticlePublishDate = async (url, browser) => {
   try {
     await delay(2000);
     const page = await browser.newPage();
-    await page.goto(url, { waitUntil: "load", timeout: 60000 });
+    await page.goto(url, { waitUntil: "load", timeout: 30000 });
     
     let publishDate = "";
     try {

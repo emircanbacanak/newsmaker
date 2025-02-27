@@ -60,17 +60,22 @@ app.get("/stream", (req, res) => {
 
         allArticles.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
         let data = JSON.stringify(allArticles);
+
         if (data !== lastData) {
             res.write(`data: ${data}\n\n`);
             lastData = data;
         }
-    }, 1000);
+
+        // Heartbeat (Eğer veri değişmese bile bağlantıyı açık tutmak için boş veri gönder)
+        res.write(`:\n\n`);
+    }, 5000); 
 
     req.on("close", () => {
         clearInterval(intervalId);
         res.end();
     });
 });
+
 
 app.get("/", (req, res) => {
     res.sendFile(path.join(__dirname, "frontend", "index.html"));

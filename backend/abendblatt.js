@@ -3,7 +3,7 @@ const cheerio = require("cheerio");
 const moment = require("moment");
 
 let ARTICLES = new Set();
-const SCRAPE_INTERVAL = 10 * 60 * 1000; // 5 dakika
+const SCRAPE_INTERVAL = 5 * 60 * 1000; // 5 dakika
 const EXPIRATION = 12 * 60 * 60 * 1000; // 12 saat
 const RETRY_INTERVAL = 30 * 60 * 1000; // 30 dakika
 

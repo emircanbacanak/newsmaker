@@ -3,7 +3,7 @@ const cheerio = require("cheerio");
 const moment = require("moment-timezone");
 
 let ARTICLES = new Set(); 
-const SCRAPE_INTERVAL = 12 * 60 * 1000; // 5 dakika
+const SCRAPE_INTERVAL = 5 * 60 * 1000; // 5 dakika
 const EXPIRATION = 12 * 60 * 60 * 1000; // 12 saat
 const BASE_URL = "https://www.usatoday.com";
 const NEWS_URL = "https://www.usatoday.com/news/nation/";

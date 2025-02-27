@@ -3,7 +3,7 @@ const cheerio = require("cheerio");
 const path = require("path");
 const fs = require("fs");
 
-const SCRAPE_INTERVAL = 12 * 60 * 1000; // 5 dakika
+const SCRAPE_INTERVAL = 5 * 60 * 1000; // 5 dakika
 const RETRY_INTERVAL = 30 * 60 * 1000; // 30 dakika
 const BLACKLIST_EXPIRATION = 7 * 24 * 60 * 60 * 1000; // 7 gün
 

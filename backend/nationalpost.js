@@ -2,7 +2,7 @@ const axios = require("axios");
 const cheerio = require("cheerio");
 const moment = require("moment-timezone");
 
-const SCRAPE_INTERVAL = 11 * 60 * 1000; // Her 2 dakikada bir
+const SCRAPE_INTERVAL = 5 * 60 * 1000; // Her 2 dakikada bir
 const RETRY_INTERVAL = 30 * 60 * 1000; // 30 dakika bekleme süresi
 
 let ARTICLES = [];

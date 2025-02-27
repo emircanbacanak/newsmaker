@@ -2,7 +2,7 @@ const axios = require("axios");
 const cheerio = require("cheerio");
 const moment = require("moment-timezone");
 
-const SCRAPE_INTERVAL = 10 * 60 * 1000; // 5 dakika
+const SCRAPE_INTERVAL = 5 * 60 * 1000; // 5 dakika
 const EXPIRATION = 12 * 60 * 60 * 1000; // 12 saat
 const RETRY_INTERVAL = 30 * 60 * 1000; // 30 dakika sonra tekrar deneme
 let ARTICLES = [];
@@ -18,7 +18,7 @@ const getNews = async (url) => {
   try {
     const randomUserAgent = userAgents[Math.floor(Math.random() * userAgents.length)];
     const response = await axios.get(url, {
-      timeout: 15000,
+      timeout: 60000,
       maxRedirects: 3,
       headers: {
         'User-Agent': randomUserAgent,

@@ -10,7 +10,7 @@ let ARTICLES = [];
 let seenTitles = new Set();
 let isFirstRun = true;
 
-const SCRAPE_INTERVAL = 10 * 60 * 1000;
+const SCRAPE_INTERVAL = 5 * 60 * 1000;
 const EXPIRATION = 12 * 60 * 60 * 1000; // 12 saat
 const RETRY_INTERVAL = 30 * 60 * 1000;  // 30 dakika
 
@@ -49,7 +49,7 @@ async function validateArticles(articles) {
   const validated = await Promise.all(
     articles.map(async (article) => {
       try {
-        await axios.head(article.link, { timeout: 15000 });
+        await axios.head(article.link, { timeout: 30000 });
         return article;
       } catch (e) {
         return null;

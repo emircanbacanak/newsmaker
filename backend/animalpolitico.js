@@ -8,7 +8,7 @@ const https = require('https');
 
 let ARTICLES = new Map();
 
-const SCRAPE_INTERVAL = 10 * 60 * 1000; 
+const SCRAPE_INTERVAL = 5 * 60 * 1000; 
 const EXPIRATION = 12 * 60 * 60 * 1000;
 const BASE_URL = "https://www.animalpolitico.com";
 

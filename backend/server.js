@@ -2,7 +2,7 @@ const express = require("express");
 const path = require("path");
 
 const { startAbendblattScraper, getAbendblattArticles } = require("./abendblatt");
-const { startAnimalpoliticoScraper, getAnimalpoliticoArticles  } = require("./animalpolitico")
+const { startAnimalpoliticoScraper, getAnimalpoliticoArticles } = require("./animalpolitico");
 const { startElmundoScraper, getElmundoArticles } = require("./elmundo_es");
 const { startFolhaScraper, getFolhaArticles } = require("./folha_uol");
 const { startGazetaScraper, getGazetaArticles } = require("./gazeta_ru");
@@ -11,16 +11,16 @@ const { startHindustanTimesScraper, getHindustanTimesArticles } = require("./hin
 const { startJapanNews, getJapanNewsArticles } = require("./japannews");
 const { startKlixNews, getKlixArticles } = require("./klix_ba");
 const { startlefigaroNews, getlefigaroArticles } = require("./lefigaro");
-const { startNationalPostNews, getNationalPostArticles } = require("./nationalpost")
-const { startnews_com, getnews_comArticles } = require("./news_com")
-const { startNaverNews, getNaverArticles  } = require("./news_naver")
-const { startRepubblicaScraper, getRepubblicaArticles  } = require("./repubblica")
-const { startTelegraafScraper, getTelegraafArticles } = require("./telegraaf")
-const { startAfricaReportScraper, getAfricaReportArticles  } = require("./theafricareport")
-const { startTheSunScraper, getTheSunArticles  } = require("./thesun")
-const { startTribunnewsScraper, getTribunnewsArticles  } = require("./tribunnews")
-const { startUSATodayScraper, getUSATodayArticles  } = require("./usatoday")
-const { startStandardScraper, getStandardArticles  } = require("./standard")
+const { startNationalPostNews, getNationalPostArticles } = require("./nationalpost");
+const { startnews_com, getnews_comArticles } = require("./news_com");
+const { startNaverNews, getNaverArticles } = require("./news_naver");
+const { startRepubblicaScraper, getRepubblicaArticles } = require("./repubblica");
+const { startTelegraafScraper, getTelegraafArticles } = require("./telegraaf");
+const { startAfricaReportScraper, getAfricaReportArticles } = require("./theafricareport");
+const { startTheSunScraper, getTheSunArticles } = require("./thesun");
+const { startTribunnewsScraper, getTribunnewsArticles } = require("./tribunnews");
+const { startUSATodayScraper, getUSATodayArticles } = require("./usatoday");
+const { startStandardScraper, getStandardArticles } = require("./standard");
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -78,24 +78,34 @@ app.get("/", (req, res) => {
 
 app.listen(port, () => {
     console.log(`Server ${port} portunda çalışıyor...`);
-    startAbendblattScraper();
-    startAnimalpoliticoScraper();
-    startElmundoScraper();
-    startFolhaScraper();
-    startGazetaScraper(); 
-    startGlobalTimesScraper();
-    startHindustanTimesScraper();
-    startJapanNews();
-    startKlixNews();
-    startlefigaroNews();
-    startNationalPostNews();
-    startnews_com();
-    startNaverNews();
-    startRepubblicaScraper(); 
-    startTelegraafScraper();
-    startAfricaReportScraper();
-    startTheSunScraper();
-    startTribunnewsScraper();
-    startStandardScraper()
-    startUSATodayScraper();
+
+    const scrapers = [
+        startAbendblattScraper,
+        startAnimalpoliticoScraper,
+        startElmundoScraper,
+        startFolhaScraper,
+        startGazetaScraper,
+        startGlobalTimesScraper,
+        startHindustanTimesScraper,
+        startJapanNews,
+        startKlixNews,
+        startlefigaroNews,
+        startNationalPostNews,
+        startnews_com,
+        startNaverNews,
+        startRepubblicaScraper,
+        startTelegraafScraper,
+        startAfricaReportScraper,
+        startTheSunScraper,
+        startTribunnewsScraper,
+        startStandardScraper,
+        startUSATodayScraper
+    ];
+
+    scrapers.forEach((scraper, index) => {
+        setTimeout(() => {
+            console.log(`Başlatılıyor: ${scraper.name}`);
+            scraper();
+        }, index * 5000); // Her scraper 5 saniye arayla başlatılacak
+    });
 });

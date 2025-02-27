@@ -213,6 +213,14 @@ header {
 }
 
 @media (max-width: 1024px) {
+  #theme-toggle {
+    font-size: 20px;
+    cursor: pointer;
+    background: none;
+    border: none;
+    color: #333;
+  }
+
   .header-buttons {
     top: 45%;
     right: 10px;
@@ -220,6 +228,7 @@ header {
   }
 
   .sidebar {
+    top: 50px;
     width: 200px;
   }
 
@@ -229,8 +238,10 @@ header {
 }
 
 @media (max-width: 768px) {
+  
+
   #logout-button i {
-    font-size: 1.1rem;
+    font-size: 1.2rem;
   }
 
   header {
@@ -256,7 +267,7 @@ header {
   }
 
   #logout-button {
-    font-size: 30px;
+    font-size: 50px;
     cursor: pointer;
     background: none;
     border: none;
@@ -269,15 +280,16 @@ header {
 
   .header-buttons {
     padding-top: 1%;
-    right: 10px;
+    right: 30px;
   }
 
   #menu-icon {
-    font-size: 1.1rem;
+    font-size: 1.2rem;
   }
 
   .sidebar {
-    width: 100px;
+    
+    width: 150px;
   }
 
   .kart {
@@ -293,6 +305,10 @@ header {
 }
 
 @media (max-width: 480px) {
+  #logout-button i {
+    font-size: 1.1rem;
+  }
+
   header {
     position: fixed;
     top: 0;
@@ -327,7 +343,7 @@ header {
 
   .header-buttons {
     top: 50%;
-    right: 8px;
+    right: 15px;
   }
 
   .sidebar {
@@ -375,13 +391,30 @@ header {
     border: none;
     color: #333;
   }
+
+  #logout-button {
+    right: 15px;
+    font-size: 15px;
+    cursor: pointer;
+    background: none;
+    border: none;
+    color: var(--header-text);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.3s ease;
+  }
+
   .kart {
     width: 80%;
   }
 
+  .header-h1 {
+    right: 5px;
+  }
   .header-buttons {
     top: 50%;
-    right: 5px;
+    right: 20px;
   }
 
   #menu-icon {

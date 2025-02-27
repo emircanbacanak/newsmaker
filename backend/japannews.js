@@ -4,7 +4,7 @@ const moment = require("moment-timezone");
 
 let ARTICLES = [];
 let seenLinks = new Set(); 
-const SCRAPE_INTERVAL = 5 * 60 * 1000;  // 5 dakika
+const SCRAPE_INTERVAL = 11 * 60 * 1000;  // 5 dakika
 const RETRY_INTERVAL = 30 * 60 * 1000;  // 30 dakika
 
 const TZ_TURKEY = "Europe/Istanbul";

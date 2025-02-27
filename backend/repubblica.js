@@ -2,7 +2,7 @@ const axios = require("axios");
 const cheerio = require("cheerio");
 const moment = require("moment-timezone");
 
-const SCRAPE_INTERVAL = 5 * 60 * 1000; // 5 dakika
+const SCRAPE_INTERVAL = 11 * 60 * 1000; // 5 dakika
 const RETRY_INTERVAL = 30 * 60 * 1000; // 30 dakika
 const EXPIRATION = 12 * 60 * 60 * 1000; // 12 saat
 const TZ_ITALY = "Europe/Rome";

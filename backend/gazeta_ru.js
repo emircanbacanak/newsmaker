@@ -2,7 +2,7 @@ const axios = require("axios");
 const cheerio = require("cheerio");
 const moment = require("moment-timezone");
 
-const SCRAPE_INTERVAL = 5 * 60 * 1000; // 5 dakika
+const SCRAPE_INTERVAL = 10 * 60 * 1000; // 5 dakika
 const EXPIRATION = 12 * 60 * 60 * 1000; // 12 saat
 const RETRY_INTERVAL = 30 * 60 * 1000; // 30 dakika sonra tekrar deneme
 let ARTICLES = [];
@@ -18,7 +18,7 @@ const getNews = async (url) => {
   try {
     const randomUserAgent = userAgents[Math.floor(Math.random() * userAgents.length)];
     const response = await axios.get(url, {
-      timeout: 320000,
+      timeout: 15000,
       maxRedirects: 3,
       headers: {
         'User-Agent': randomUserAgent,
@@ -59,7 +59,6 @@ const getNews = async (url) => {
       }
     });
 
-    // Filtreleme: sadece son 12 saatteki haberleri alıyoruz
     newsItems = newsItems.filter(item => {
       let timestamp = moment(item.timestamp, "YYYY-MM-DD HH:mm");
       return moment().diff(timestamp, 'hours') <= EXPIRATION;
@@ -116,14 +115,13 @@ const scrapeNews = async () => {
     const newArticles = await getNews(currentPageUrl);
     updateArticles(newArticles);
     
-    // Eğer sayfada son 12 saatten eski bir haber varsa, durdur
     const oldestArticle = newArticles.find(article => {
       const timestamp = moment(article.timestamp, "YYYY-MM-DD HH:mm");
       return moment().diff(timestamp, "hours") >= EXPIRATION;
     });
 
     if (oldestArticle) {
-      shouldContinue = false; // Son 12 saatten eski bir haber bulunduğunda durdur
+      shouldContinue = false;
     } else {
       const $ = await axios.get(currentPageUrl).then(response => cheerio.load(response.data));
       const nextPageButton = $("a.b_showmorebtn-link").attr("href");

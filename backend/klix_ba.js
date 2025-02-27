@@ -9,7 +9,7 @@ let firstRun = false;
 const url = "https://www.klix.ba/najnovije";
 const turkeyTz = "Europe/Istanbul";
 
-const SCRAPE_INTERVAL = 5 * 60 * 1000;  // 5 dakika
+const SCRAPE_INTERVAL = 11 * 60 * 1000;  // 5 dakika
 const EXPIRATION = 12 * 60 * 60 * 1000;  // 12 saat
 const RETRY_INTERVAL = 30 * 60 * 1000;   // 30 dakika
 

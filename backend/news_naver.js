@@ -5,7 +5,7 @@ const moment = require('moment-timezone');
 let ARTICLES = new Set();
 const BASE_URL = "https://news.naver.com/";
 
-const SCRAPE_INTERVAL = 5 * 60 * 1000; // 5 dakika
+const SCRAPE_INTERVAL = 11 * 60 * 1000; // 5 dakika
 const RETRY_INTERVAL = 30 * 60 * 1000; // 30 dakika bekleme süresi
 let isFirstRun = true; 
 

@@ -3,7 +3,7 @@ const cheerio = require("cheerio");
 const moment = require("moment");
 
 let ARTICLES = new Set();
-const SCRAPE_INTERVAL = 5 * 60 * 1000; // 5 dakika
+const SCRAPE_INTERVAL = 10 * 60 * 1000; // 5 dakika
 const EXPIRATION = 12 * 60 * 60 * 1000; // 12 saat
 const RETRY_INTERVAL = 30 * 60 * 1000; // 30 dakika
 
@@ -14,7 +14,7 @@ async function getTimestampFromLink(link) {
     return null;
   }
   try {
-    const response = await axios.get(link, { timeout: 60000 });
+    const response = await axios.get(link, { timeout: 15000 });
     if (response.status === 404) {
       return null;
     }
@@ -42,7 +42,7 @@ async function scrapeNews() {
   }
   const url = "https://www.abendblatt.de/";
   try {
-    const response = await axios.get(url, { timeout: 60000 });
+    const response = await axios.get(url, { timeout: 15000 });
     const $ = cheerio.load(response.data);
     let newArticles = [];
 

@@ -85,25 +85,27 @@ document.addEventListener('DOMContentLoaded', function () {
   function filterNews() {
     const now = Date.now();
     filteredNews = allNews.filter(haber => {
-      if (haber.source === "animalpolitico.com") {
-        return true; 
-      }
-  
-      const timestamp = new Date(haber.timestamp).getTime();
-      let timeDiff = now - timestamp;
-      switch (filterType) {
-        case 'last-hour':
-          return timeDiff <= 60 * 60 * 1000;
-        case 'last-6-hours':
-          return timeDiff <= 6 * 60 * 60 * 1000;
-        case 'last-12-hours':
-          return timeDiff <= 12 * 60 * 60 * 1000;
-        default:
-          return true;
-      }
+        if (haber.source === "animalpolitico.com") {
+            return true; 
+        }
+
+        const timestamp = new Date(haber.timestamp).getTime();
+        let timeDiff = now - timestamp;
+        switch (filterType) {
+            case 'last-hour':
+                return timeDiff <= 60 * 60 * 1000;
+            case 'last-6-hours':
+                return timeDiff <= 6 * 60 * 60 * 1000;
+            case 'last-12-hours':
+                return timeDiff <= 12 * 60 * 60 * 1000;
+            default:
+                return true;
+        }
     });
+    filteredNews.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
     loadNews();
-  }
+}
+
   
   window.addEventListener('scroll', function () {
     if (window.innerHeight + window.scrollY >= document.body.offsetHeight - 100) {
@@ -117,9 +119,10 @@ document.addEventListener('DOMContentLoaded', function () {
   const evtSource = new EventSource("/stream");
   evtSource.onmessage = function (event) {
     allNews = JSON.parse(event.data);
+    allNews.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+    
     filterNews();
-  };
-
+};
   document.getElementById('last-hour-filter').addEventListener('click', function () {
     filterType = 'last-hour';
     filterNews();

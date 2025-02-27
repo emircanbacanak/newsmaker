@@ -65,8 +65,6 @@ app.get("/stream", (req, res) => {
             res.write(`data: ${data}\n\n`);
             lastData = data;
         }
-
-        // Heartbeat (Eğer veri değişmese bile bağlantıyı açık tutmak için boş veri gönder)
         res.write(`:\n\n`);
     }, 5000); 
 
@@ -111,6 +109,6 @@ app.listen(port, () => {
         setTimeout(() => {
             console.log(`Başlatılıyor: ${scraper.name}`);
             scraper();
-        }, index * 5000); // Her scraper 5 saniye arayla başlatılacak
+        }, index *10000); 
     });
 });

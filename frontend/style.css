@@ -229,17 +229,51 @@ header {
 }
 
 @media (max-width: 768px) {
+  #logout-button i {
+    font-size: 1.1rem;
+  }
+
   header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 50px;
+    text-align: center;
+    background: var(--header-bg);
+    color: var(--header-text);
+    z-index: 1000; 
+    font-size:0.8rem;
     padding: 0.5rem;
   }
 
+  #theme-toggle {
+    font-size: 20px;
+    cursor: pointer;
+    background: none;
+    border: none;
+    color: #333;
+  }
+
+  #logout-button {
+    font-size: 30px;
+    cursor: pointer;
+    background: none;
+    border: none;
+    color: var(--header-text);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.3s ease;
+  }
+
   .header-buttons {
-    top: 40%;
+    padding-top: 1%;
     right: 10px;
   }
 
   #menu-icon {
-    font-size: 1rem;
+    font-size: 1.1rem;
   }
 
   .sidebar {
@@ -259,8 +293,40 @@ header {
 }
 
 @media (max-width: 480px) {
+  header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 50px;
+    text-align: center;
+    background: var(--header-bg);
+    color: var(--header-text);
+    z-index: 1000; 
+  }
+
+  #theme-toggle {
+    font-size: 15px;
+    cursor: pointer;
+    background: none;
+    border: none;
+    color: #333;
+  }
+
+  #logout-button {
+    font-size: 20px;
+    cursor: pointer;
+    background: none;
+    border: none;
+    color: var(--header-text);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.3s ease;
+  }
+
   .header-buttons {
-    top: 35%;
+    top: 50%;
     right: 8px;
   }
 
@@ -290,16 +356,35 @@ header {
 }
 
 @media (max-width: 360px) {
+  header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 50px;
+    text-align: center;
+    background: var(--header-bg);
+    color: var(--header-text);
+    z-index: 1000; 
+  }
+
+  #theme-toggle {
+    font-size: 15px;
+    cursor: pointer;
+    background: none;
+    border: none;
+    color: #333;
+  }
   .kart {
-    width: 90%;
+    width: 80%;
   }
 
   .header-buttons {
-    top: 30%;
+    top: 50%;
     right: 5px;
   }
 
   #menu-icon {
-    font-size: 1.5rem;
+    font-size: 1.1rem;
   }
 }

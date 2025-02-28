@@ -23,12 +23,12 @@ function getImageUrl(element) {
   let imgUrl =
     element.find("figure img").attr("data-src") ||
     element.find("figure img").attr("src") ||
-    "No image";
+    "";
   if (imgUrl.startsWith("//")) {
     imgUrl = "https:" + imgUrl;
   }
   if (imgUrl.startsWith("data:image")) {
-    imgUrl = "No image";
+    imgUrl = "";
   }
   return imgUrl;
 }
@@ -106,7 +106,6 @@ async function getNews() {
     articles = await validateArticles(articles);
     return articles;
   } catch (err) {
-    console.error("hindustantimes Haberleri çekerken hata oluştu:");
     setTimeout(() => {
       scrapeNews();
     }, RETRY_INTERVAL);
@@ -150,8 +149,6 @@ async function scrapeNews() {
     );
     ARTICLES = updatedArticles;
   } catch (error) {
-    console.error("hindustantimes ScrapeNews hatası:");
-    // Hata durumunda 30 dakika sonra tekrar denenecek
     setTimeout(() => {
       scrapeNews();
     }, RETRY_INTERVAL);

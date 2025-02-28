@@ -19,7 +19,7 @@ function getImageUrl(element) {
         imgUrl = "https:" + imgUrl;
     }
     if (imgUrl.startsWith("data:image")) {
-        imgUrl = "No image";
+        imgUrl = "";
     }
     return imgUrl;
 }
@@ -72,7 +72,6 @@ async function getNews() {
         });
         return articles;
     } catch (err) {
-        console.error("folha.uol Haberleri çekerken hata oluştu:", err);
         return [];
     }
 }
@@ -106,7 +105,6 @@ async function startFolhaScraper() {
         try {
             await scrapeNews();
         } catch (err) {
-            console.error("folha Hata oluştu, 30 dakika sonra yeniden denenecek:");
             setTimeout(async () => {
                 await scrapeNews();
             }, RETRY_INTERVAL);

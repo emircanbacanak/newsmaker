@@ -28,7 +28,6 @@ const getArticleTime = async (articleUrl) => {
     }
     return moment().tz(TZ_TURKEY).format("YYYY-MM-DD HH:mm");
   } catch (error) {
-    console.error("JapanNews Haber zamanı çekme hatası:");
     return moment().tz(TZ_TURKEY).format("YYYY-MM-DD HH:mm");
   }
 };
@@ -83,7 +82,6 @@ const getJapanNews = async () => {
       }
       page++;
     } catch (error) {
-      console.error("JapanNews haberleri çekilirken hata:", error.message);
       break;
     }
   }
@@ -105,7 +103,6 @@ const scrapeNews = async () => {
       ARTICLES = [...newArticlesToAdd, ...ARTICLES];
     }
   } catch (error) {
-    console.error("JapanNews ScrapeNews hatası:", error.message);
     setTimeout(scrapeNews, RETRY_INTERVAL);
   }
 };
@@ -119,7 +116,6 @@ const startJapanNews = async () => {
       await scrapeNews();
     }, SCRAPE_INTERVAL);
   } catch (error) {
-    console.error("JapanNews Hata oluştu, tekrar denenecek...");
     setTimeout(startJapanNews, RETRY_INTERVAL); 
   }
 };

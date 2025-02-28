@@ -74,7 +74,6 @@ const getNews = async (url) => {
             seenTitles.add(title);
           }
         } catch (articleError) {
-          console.error("Makale işlenirken hata oluştu: ");
         }
       }
     });
@@ -124,7 +123,6 @@ const scrapeNews = async () => {
         shouldContinue = false;
       }
     } catch (err) {
-      console.error("nationalpost Sayfaya erişme hatası, 30 dk sonra tekrar deneniyor...");
       await delay(RETRY_INTERVAL);
     }
   }
@@ -147,11 +145,9 @@ const startNationalPostNews = async () => {
   isFirstRun = false;
   await scrapeNews();
   setInterval(async () => {
-    console.log("nationalpost Haberler güncelleniyor...");
     try {
       await scrapeNews();
     } catch (err) {
-      console.error("nationalpost Haberler güncellenirken bir hata oluştu, 30 dk sonra tekrar deneniyor...");
       await delay(RETRY_INTERVAL);
     }
   }, SCRAPE_INTERVAL);

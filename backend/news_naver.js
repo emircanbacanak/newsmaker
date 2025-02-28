@@ -34,7 +34,6 @@ const getNews = async () => {
     await browser.close();
     return newsItems;
   } catch (error) {
-    console.error("news.naver Haber çekme hatası:");
     throw error;
   }
 };
@@ -46,7 +45,6 @@ const verifyArticles = async () => {
       await axios.get(article.link, { timeout: 15000 });
       validArticles.push(article);
     } catch (err) {
-      console.log(`news.naver Geçersiz haber: ${article.link}`);
     }
   });
   await Promise.all(articlePromises);
@@ -87,7 +85,6 @@ const startNaverNews = async () => {
     ARTICLES = new Set([...ARTICLES].sort((a, b) => moment(b.timestamp).diff(moment(a.timestamp))));
     await verifyArticles();
   } catch (error) {
-    console.log("news.naver Hata durumunda 30 dakika sonra tekrar denenecek...");
     setTimeout(startNaverNews, RETRY_INTERVAL);
     return;
   }

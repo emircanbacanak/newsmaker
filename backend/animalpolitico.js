@@ -148,7 +148,6 @@ async function getNews() {
     });
 
   } catch (err) {
-    console.error('animalpolitico Haber çekme hatası:');
     setTimeout(getNews, 30 * 60 * 1000);
   }
   return newsList;
@@ -172,7 +171,6 @@ async function scrapeNews() {
     ));
 
   } catch (err) {
-    console.error('animalpolitico Haber tarama hatası:');
     setTimeout(scrapeNews, 30 * 60 * 1000);
   }
 }
@@ -189,7 +187,6 @@ function backgroundTask() {
   scrapeNews();
   setInterval(async () => {
     await scrapeNews(); 
-    console.log('animalpolitico Haberler güncelleniyor...');
   }, SCRAPE_INTERVAL);
 }
 

@@ -35,7 +35,7 @@ const getArticlePublishDate = async (url, browser) => {
       if (africaDate.isValid()) {
         result = africaDate.tz("Europe/Istanbul").format("YYYY-MM-DD HH:mm:ss");
       } else {
-        console.error(`Geçersiz tarih formatı: ${publishDate}`);
+        console.error(``);
       }
     }
     
@@ -90,7 +90,6 @@ const getAfricaNews = async () => {
     await browser.close();
     return Array.from(newsItems).map(item => JSON.parse(item));
   } catch (error) {
-    console.error("theafricareport Sayfaya erişme hatası: 30 dakika sonra tekrar denenecek...");
     await new Promise(resolve => setTimeout(resolve, RETRY_INTERVAL));
     return [];
   }
@@ -119,7 +118,6 @@ const scrapeNews = async () => {
       console.log("theafricareport Haberler güncelleniyor...");
     }
   } catch (error) {
-    console.error("theafricareport Hata oluştu, 30 dakika sonra tekrar denenecek...");
     await new Promise(resolve => setTimeout(resolve, RETRY_INTERVAL));
   }
   setTimeout(scrapeNews, SCRAPE_INTERVAL);

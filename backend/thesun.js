@@ -37,7 +37,6 @@ const fetchArticleTime = async (link) => {
     }
     return null;
   } catch (error) {
-    console.error("thesun.co.uk Haber zaman bilgisi çekerken hata oluştu, haber siliniyor:", link);
     ARTICLE_LINKS.delete(link);
     return null;
   }
@@ -112,8 +111,6 @@ const getNews = async () => {
     ARTICLES.sort((a, b) => moment(b.timestamp, "YYYY-MM-DD HH:mm").diff(moment(a.timestamp, "YYYY-MM-DD HH:mm")));
     return ARTICLES;
   } catch (error) {
-    console.error("The Sun haber çekme hatası:");
-    console.log(`thesun Hata alındı, ${RETRY_DELAY / (60 * 1000)} dakika sonra tekrar denenecek...`);
     setTimeout(scrapeNews, RETRY_DELAY);
     return [];
   }
@@ -130,8 +127,6 @@ const scrapeNews = async () => {
     }
     await getNews();
   } catch (error) {
-    console.error("thesun ScrapeNews hatası:");
-    console.log(`Hata alındı, ${RETRY_DELAY / (60 * 1000)} dakika sonra tekrar denenecek...`);
     setTimeout(scrapeNews, RETRY_DELAY);
     return;
   }

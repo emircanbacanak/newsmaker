@@ -28,7 +28,6 @@ async function getTimestampFromLink(link) {
       return new Date();
     }
   } catch (e) {
-    console.error("Abendblatt Hata alınırken, linkin zaman damgası alınamadı:" + link);
     return null;
   }
 }
@@ -196,7 +195,6 @@ async function scrapeNews() {
     newArticles.forEach((art) => ARTICLES.add(JSON.stringify(art)));
     cleanupArticles();
   } catch (e) {
-    console.error("Abendblatt Haberleri çekerken hata oluştu:", e.message);
     setTimeout(scrapeNews, RETRY_INTERVAL);
   }
 }

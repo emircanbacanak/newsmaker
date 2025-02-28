@@ -68,7 +68,6 @@ const getNews = async (url) => {
   } catch (error) {
     console.error("Hata:", error.message);
     if (error.code === 'ECONNRESET' || error.code === 'ETIMEDOUT' || error.response?.status === 404) {
-      console.error('Gazeta Bağlantı hatası, yeniden deniyorum...');
       setTimeout(() => getNews(url), RETRY_INTERVAL);
     } else {
       return [];
@@ -82,7 +81,6 @@ const loadMoreNews = async (nextPageUrl) => {
     const newsItems = await getNews(nextPageUrl);
     return newsItems;
   } catch (error) {
-    console.error("gazeta Daha fazla haber çekme hatası:");
     return [];
   }
 };

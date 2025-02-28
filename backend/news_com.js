@@ -68,16 +68,13 @@ const getNews = async () => {
     newsList = results.filter((article) => article !== null);
     return newsList;
   } catch (error) {
-    console.error("news.com.au Haber çekme hatası:");
 
     if (error.response && error.response.status === 403) {
-      console.log("news.com 403 hatası alındı, 30 dakika sonra tekrar deneniyor...");
       setTimeout(scrapeNews, RETRY_INTERVAL);
       return [];
     }
 
     if (error.code === "ECONNREFUSED" || error.code === "ENOTFOUND" || error.code === "ETIMEDOUT") {
-      console.log("news.com Bağlantı hatası, 30 dakika sonra tekrar deneniyor...");
       setTimeout(scrapeNews, RETRY_INTERVAL);
       return [];
     }

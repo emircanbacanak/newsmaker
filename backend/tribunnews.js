@@ -78,7 +78,6 @@ const getNews = async () => {
     ARTICLES.sort((a, b) => moment(b.timestamp, "YYYY-MM-DD HH:mm").diff(moment(a.timestamp, "YYYY-MM-DD HH:mm")));
     return ARTICLES;
   } catch (error) {
-    console.log(`tribunnews Hata alındı, ${RETRY_DELAY / (60 * 1000)} dakika sonra tekrar denenecek...`);
     setTimeout(scrapeNews, RETRY_DELAY);
     return [];
   }

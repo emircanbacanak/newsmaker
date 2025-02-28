@@ -109,6 +109,6 @@ app.listen(port, () => {
         setTimeout(() => {
             console.log(`Başlatılıyor: ${scraper.name}`);
             scraper();
-        }, index *10000); 
+        }, index *5000); 
     });
 });

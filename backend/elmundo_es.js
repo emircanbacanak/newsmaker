@@ -51,7 +51,6 @@ async function getNews() {
       }
     });
   } catch (err) {
-    console.error("Elmundo.es Haberler çekilirken hata oluştu:");
   }
   return newsList;
 }
@@ -75,7 +74,6 @@ async function scrapeNews() {
     ));
 
   } catch (err) {
-    console.error("Elmundo.es Haberleri tararken hata oluştu:");
     setTimeout(scrapeNews, RETRY_INTERVAL);
   }
 }
@@ -99,7 +97,6 @@ function startElmundoScraper() {
 
   scrapeNews();
   setInterval(() => {
-    console.log("Elmundo.es Haberler güncelleniyor...");
     scrapeNews();
     cleanupArticles();
   }, SCRAPE_INTERVAL);

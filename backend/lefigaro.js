@@ -125,7 +125,7 @@ async function fetchNews(url) {
                 title: title,
                 description: description,
                 link: link,
-                image: image || "Görsel bulunamadı",
+                image: image || "",
                 source: "lefigaro.fr"
             });
         });
@@ -139,7 +139,6 @@ async function fetchNews(url) {
         }));
         return articlesWithTime.filter(article => article !== null);
     } catch (err) {
-        console.log(`lefigaro Hata`);
         throw err;
     }
 }
@@ -177,7 +176,6 @@ async function scrapeNews() {
                 console.log("lefigaro Haberler güncelleniyor...");
             }
         } catch (err) {
-            console.log("lefigaro Bir hata oluştu, 30 dakika sonra tekrar denenecek...");
             await new Promise(resolve => setTimeout(resolve, RETRY_INTERVAL));
             continue;
         }

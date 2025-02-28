@@ -23,7 +23,6 @@ function convertEtToTurkey(dateStr) {
         let dtEastern = moment.tz(dateStr, "h:mm A MMM D YYYY", "America/New_York");
         return dtEastern.tz(TZ);
     } catch (err) {
-        console.log(`usatoday Geçersiz tarih formatı: ${dateStr}`);
         return null;
     }
 }
@@ -119,7 +118,6 @@ async function getNews() {
             }
         });
     } catch (err) {
-        console.error('usatoday Haber çekme hatası:');
     }
     return newsList;
 }
@@ -138,7 +136,6 @@ async function scrapeNews() {
             return moment(articleB.originalTimestamp).diff(moment(articleA.originalTimestamp));
         }));
     } catch (err) {
-        console.error('usatoday Haber tarama hatası:');
     }
 }
 

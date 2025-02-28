@@ -1,8 +1,6 @@
 document.addEventListener('DOMContentLoaded', function () {
-    // Kullanıcı oturumunu kontrol et
     const userSession = getCookie('user_session');
     if (userSession) {
-      // Eğer oturum açıksa, index sayfasına yönlendir
       window.location.href = 'index.html';
     }
   
@@ -12,19 +10,15 @@ document.addEventListener('DOMContentLoaded', function () {
       const username = document.getElementById('username').value;
       const password = document.getElementById('password').value;
   
-      // Kullanıcı adı ve şifre kontrolü (bu örnekte sabit kontrol ediyoruz)
-      if (username === 'admin' && password === 'password123') {
-        // Başarılı giriş, çerezlere kaydet
-        setCookie('user_session', 'active', 1);  // 1 gün boyunca oturumu sakla
-        window.location.href = 'index.html';  // Ana sayfaya yönlendir
+      if (username === 'admin' && password === 'Oğuzhan36.') {
+        setCookie('user_session', 'active', 1);
+        window.location.href = 'index.html';
       } else {
-        // Hatalı giriş
         const errorMessage = document.getElementById('error-message');
         errorMessage.style.display = 'block';
       }
     });
   
-    // Çerezleri ayarlama fonksiyonu
     function setCookie(name, value, days) {
       const d = new Date();
       d.setTime(d.getTime() + (days * 24 * 60 * 60 * 1000));
@@ -32,7 +26,6 @@ document.addEventListener('DOMContentLoaded', function () {
       document.cookie = name + "=" + value + ";" + expires + ";path=/";
     }
   
-    // Çerez okuma fonksiyonu
     function getCookie(name) {
       let nameEq = name + "=";
       let ca = document.cookie.split(';');

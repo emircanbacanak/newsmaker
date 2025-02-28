@@ -33,7 +33,6 @@ const fetchArticleTime = async (link) => {
     }
     return null;
   } catch (error) {
-    console.error("Global Times Error fetching article time:");
     return null;
   }
 };
@@ -209,7 +208,6 @@ const getNews = async () => {
     );
     return filteredNews;
   } catch (error) {
-    console.error("Global Times haber çekme hatası:");
     setTimeout(() => getNews(), RETRY_INTERVAL);
     return [];
   }
@@ -252,7 +250,6 @@ const scrapeNews = async () => {
       new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
     );
   } catch (error) {
-    console.error("Global Times ScrapeNews hatası:");
     setTimeout(() => scrapeNews(), RETRY_INTERVAL);
   }
 };

@@ -18,7 +18,6 @@ const loadBlackList = () => {
       const data = fs.readFileSync(blackListFilePath, "utf8");
       return JSON.parse(data);
     } catch (err) {
-      console.error("Blacklist okuma hatası:", err.message);
       return [];
     }
   }
@@ -29,7 +28,6 @@ const saveBlackList = () => {
   try {
     fs.writeFileSync(blackListFilePath, JSON.stringify(blackList, null, 2), "utf8");
   } catch (err) {
-    console.error("standard Blacklist yazma hatası:", err.message);
   }
 };
 
@@ -101,7 +99,6 @@ const getNews = async () => {
 
     return Array.from(newsItems).map(item => JSON.parse(item));
   } catch (error) {
-    console.error("Standard Sayfaya erişme hatası: 30 dakika sonra tekrar denenecek...", error.message);
     await new Promise(resolve => setTimeout(resolve, RETRY_INTERVAL));
     return [];
   }
@@ -129,7 +126,6 @@ const scrapeNews = async () => {
       console.log("standard Haberler güncelleniyor...");
     }
   } catch (error) {
-    console.error("standard İnternet hatası: 30 dakika sonra tekrar denenecek...", error.message);
     await new Promise(resolve => setTimeout(resolve, RETRY_INTERVAL));
   }
   setTimeout(scrapeNews, SCRAPE_INTERVAL);

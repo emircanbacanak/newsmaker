@@ -15,7 +15,6 @@ const getArticleTime = async (articleUrl) => {
   try {
     const response = await axios.get(articleUrl);
     if (response.status === 404) {
-      console.log(`repubblica Makale bulunamadı (404): ${articleUrl}`);
       return null;
     }
     const $ = cheerio.load(response.data);
@@ -76,7 +75,6 @@ const getNews = async () => {
 
     return newsItemsWithTime.filter(item => item !== null);
   } catch (error) {
-    console.log("repubblica sayfa erişim hatası, 30 dakika sonra tekrar denenecek...");
     setTimeout(startRepubblicaScraper, RETRY_INTERVAL);
     return [];
   }
@@ -109,7 +107,6 @@ const startRepubblicaScraper = async () => {
     ARTICLES = new Set([...ARTICLES].filter(article => moment(article.timestamp, "YYYY-MM-DD HH:mm").isAfter(twelveHoursAgo)));
     await verifyArticles();
   } catch (error) {
-    console.log("Repubblica hata durumu, 30 dakika sonra tekrar denenecek...");
     return setTimeout(startRepubblicaScraper, RETRY_INTERVAL);
   }
 

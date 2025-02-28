@@ -82,7 +82,6 @@ async function getLatestNews(url) {
       newsList = newsList.sort((a, b) => b.articleTime - a.articleTime);
       pageNumber++;
     } catch (err) {
-      console.log(`klix.ba 30 dakika beklenecek sonra çalışacak`);
       await new Promise(resolve => setTimeout(resolve, RETRY_INTERVAL));
       break;
     }
@@ -121,7 +120,6 @@ async function scrapeNews() {
       firstRun = true;
       await new Promise(resolve => setTimeout(resolve, SCRAPE_INTERVAL));
     } catch (error) {
-      console.error("klix.ba ScrapeNews hatası:", error.message);
       await new Promise(resolve => setTimeout(resolve, RETRY_INTERVAL));
     }
   }

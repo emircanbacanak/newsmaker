@@ -64,7 +64,6 @@ const getNews = async () => {
     }
     return Array.from(newsItems).map(item => JSON.parse(item));
   } catch (error) {
-    console.error("telegraaf Sayfaya erişme hatası: 30 dakika sonra tekrar denenecek...");
     await new Promise(resolve => setTimeout(resolve, RETRY_INTERVAL));
     return [];
   }
@@ -87,7 +86,6 @@ const scrapeNews = async () => {
       console.log("telegraaf Haberler güncelleniyor...");
     }
   } catch (error) {
-    console.error("telegraaf İnternet hatası: 30 dakika sonra tekrar denenecek...");
     await new Promise(resolve => setTimeout(resolve, RETRY_INTERVAL));
   }
   setTimeout(scrapeNews, SCRAPE_INTERVAL);

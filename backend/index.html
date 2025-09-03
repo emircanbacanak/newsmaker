@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="tr">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, max-age=0">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <meta name="description" content="Dünya çapında güncel haberler - 20 farklı ülkeden canlı haber akışı">
+    <meta name="keywords" content="haber, güncel, dünya, news, international">
+    <title>Global News Hub - Güncel Haberler</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌍</text></svg>">
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Styles -->
+    <link rel="stylesheet" type="text/css" href="style.css">
+    
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  </head>
+  
+<body class="light-theme">
+  <!-- Header -->
+  <header class="main-header">
+    <div class="header-container">
+      <button id="menu-toggle" class="menu-toggle" aria-label="Menüyü aç/kapat">
+        <span class="hamburger"></span>
+        <span class="hamburger"></span>
+        <span class="hamburger"></span>
+      </button>
+      
+      <div class="header-title">
+        <h1><i class="fas fa-globe-americas"></i> Global News Hub</h1>
+        <span class="subtitle">Dünya Çapında Güncel Haberler</span>
+      </div>
+      
+      <div class="header-actions">
+        <div class="search-container">
+          <i class="fas fa-search search-icon"></i>
+          <input type="text" id="site-search" placeholder="Site ara (örn: naver, thesun, standard...)" class="site-search">
+          <button id="clear-search" class="clear-search" aria-label="Aramayı temizle">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+        <button id="theme-toggle" class="theme-toggle" aria-label="Tema değiştir">
+          <i class="fas fa-sun"></i>
+        </button>
+        <button id="logout-button" class="logout-btn" aria-label="Çıkış yap">
+          <i class="fas fa-sign-out-alt"></i>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Sidebar -->
+  <nav id="sidebar" class="sidebar">
+    <div class="sidebar-header">
+      <h3><i class="fas fa-filter"></i> Zaman Filtresi</h3>
+    </div>
+    <ul class="filter-list">
+      <li>
+        <a href="#" id="last-hour-filter" class="filter-link active">
+          <i class="fas fa-clock"></i>
+          <span>Son Saat</span>
+        </a>
+      </li>
+      <li>
+        <a href="#" id="last-6-hours-filter" class="filter-link">
+          <i class="fas fa-history"></i>
+          <span>Son 6 Saat</span>
+        </a>
+      </li>
+      <li>
+        <a href="#" id="last-12-hours-filter" class="filter-link">
+          <i class="fas fa-calendar-day"></i>
+          <span>Son 12 Saat</span>
+        </a>
+      </li>
+    </ul>
+  </nav>
+
+  <!-- Overlay -->
+  <div id="overlay" class="overlay"></div>
+
+  <!-- Main Content -->
+  <main class="main-content">
+    <div class="news-stats">
+      <div class="stat-item">
+        <i class="fas fa-newspaper"></i>
+        <span id="news-count">0</span>
+        <small>Haber</small>
+      </div>
+      <div class="stat-item">
+        <i class="fas fa-globe"></i>
+        <span>20</span>
+        <small>Ülke</small>
+      </div>
+      <div class="stat-item">
+        <i class="fas fa-language"></i>
+        <span>15+</span>
+        <small>Dil</small>
+      </div>
+    </div>
+
+    <div class="news-container">
+      <div class="loading-spinner" id="loading">
+        <div class="spinner"></div>
+        <p>Haberler yükleniyor...</p>
+      </div>
+      <div class="news-grid" id="news-grid"></div>
+    </div>
+  </main>
+
+  <!-- Back to Top Button -->
+  <button id="back-to-top" class="back-to-top" aria-label="Yukarı çık">
+    <i class="fas fa-arrow-up"></i>
+  </button>
+
+  <script src="index.js"></script>
+</body>
+</html>

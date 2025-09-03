@@ -1,0 +1,25 @@
+services:
+  - type: web
+    name: global-news-hub
+    runtime: node
+    plan: free
+    region: frankfurt
+    buildCommand: cd backend && npm install
+    startCommand: cd backend && npm start
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        generateValue: true
+    autoDeploy: true
+    rootDir: .
+    buildFilter:
+      paths:
+      - backend/**
+      ignoredPaths:
+      - frontend/**
+      - README.md
+    scaling:
+      minInstances: 1
+      maxInstances: 1

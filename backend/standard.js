@@ -54,7 +54,13 @@ const getNews = async () => {
         "User-Agent":
           "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.6943.60 Safari/537.36",
         "Accept-Language": "en-US,en;q=0.9",
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
+        "Accept-Encoding": "gzip, deflate, br",
+        "Connection": "keep-alive",
+        "Upgrade-Insecure-Requests": "1",
       },
+      timeout: 30000, // 30 saniye timeout
+      maxRedirects: 5,
     });
     const $ = cheerio.load(response.data);
     let newsItems = new Set();
@@ -99,7 +105,9 @@ const getNews = async () => {
 
     return Array.from(newsItems).map(item => JSON.parse(item));
   } catch (error) {
-    await new Promise(resolve => setTimeout(resolve, RETRY_INTERVAL));
+    console.log(`Standard.co.uk bağlantı hatası: ${error.code || error.message}`);
+    // Kısa süre bekle ve tekrar dene
+    await new Promise(resolve => setTimeout(resolve, 5000));
     return [];
   }
 };

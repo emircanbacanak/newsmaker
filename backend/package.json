@@ -1,14 +1,17 @@
 {
-  "name": "backend",
+  "name": "global-news-hub",
   "version": "1.0.0",
   "engines": {
-    "node": "22.13.0"
+    "node": ">=18.0.0"
   },
-  "description": "",
+  "description": "Global News Hub - Dünya çapında güncel haberler",
   "main": "server.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node server.js"
+    "start": "node server.js",
+    "dev": "node server.js",
+    "build": "echo \"No build step required\"",
+    "postinstall": "echo \"Installation complete\""
   },
   "keywords": [],
   "author": "",
@@ -20,9 +23,10 @@
     "@vitalets/google-translate-api": "^9.2.1",
     "axios": "^1.8.1",
     "axios-retry": "^4.5.0",
-    "cheerio": "^1.0.0",
+    "cheerio": "^1.1.2",
     "date-fns": "^4.1.0",
     "ejs": "^3.1.10",
+    "entities": "^6.0.1",
     "express": "^4.21.2",
     "faker": "^6.6.6",
     "fs": "^0.0.1-security",
@@ -32,6 +36,7 @@
     "iconv-lite": "^0.6.3",
     "moment": "^2.30.1",
     "moment-timezone": "^0.5.47",
+    "parse5": "^8.0.0",
     "path": "^0.12.7",
     "puppeteer": "^24.3.0",
     "puppeteer-core": "^24.2.1",

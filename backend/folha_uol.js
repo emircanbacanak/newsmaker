@@ -37,9 +37,10 @@ async function getNews() {
         const firstArticleDescription = firstArticleElement.find(".c-main-headline__standfirst").text().trim();
         const firstArticleImageUrl = getImageUrl(firstArticleElement);
         const firstArticleTimestampText = firstArticleElement.find("time").text().trim();
-        let firstArticleTimestamp = moment(firstArticleTimestampText, "DD.MMM.YYYY [às] HH[h]mm", "pt-br");
+        let firstArticleTimestamp = moment.tz(firstArticleTimestampText, "DD.MMM.YYYY [às] HH[h]mm", "America/Sao_Paulo");
         if (firstArticleTimestamp.isValid()) {
-            firstArticleTimestamp = firstArticleTimestamp.add(3, 'hours');
+            // Brezilya saati (America/Sao_Paulo) Türkiye saatine (Europe/Istanbul) çevir
+            firstArticleTimestamp = firstArticleTimestamp.tz("Europe/Istanbul");
             const timeDiff = currentTime.diff(firstArticleTimestamp, "hours");
             if (timeDiff <= 12) {
                 articles.push({ 
@@ -60,9 +61,10 @@ async function getNews() {
             const imageUrl = getImageUrl(element);
             const timestampText = element.find("time").text().trim() || null;
             if (timestampText) {
-                let timestamp = moment(timestampText, "DD.MMM.YYYY [às] HH[h]mm", "pt-br");
+                let timestamp = moment.tz(timestampText, "DD.MMM.YYYY [às] HH[h]mm", "America/Sao_Paulo");
                 if (timestamp.isValid()) {
-                    timestamp = timestamp.add(3, 'hours'); 
+                    // Brezilya saati (America/Sao_Paulo) Türkiye saatine (Europe/Istanbul) çevir
+                    timestamp = timestamp.tz("Europe/Istanbul"); 
                     const timeDiff = currentTime.diff(timestamp, "hours");
                     if (timeDiff <= 11) {
                         articles.push({ title, link, time: timestamp.format("YYYY-MM-DD HH:mm"), description, image_url: imageUrl });

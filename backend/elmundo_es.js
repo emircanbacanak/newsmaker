@@ -38,7 +38,8 @@ async function getNews() {
       let pubDateStr = $(el).find("div.ue-c-cover-content__published-date").attr("data-publish") || "";
       let dateObj = pubDateStr ? moment.tz(pubDateStr, "YYYY-MM-DD HH:mm:ss", "Europe/Madrid") : null;
       if (dateObj) {
-        dateObj = dateObj.add(2, 'hours');
+        // İspanya saati (Europe/Madrid) Türkiye saatine (Europe/Istanbul) çevir
+        dateObj = dateObj.tz("Europe/Istanbul");
         let fullTitle = kicker ? `${kicker}: ${title}` : title;
         newsList.push({
           link: getFullUrl(link),
